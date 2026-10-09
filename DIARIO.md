@@ -10,16 +10,25 @@ Registro do que foi feito em cada fase, em ordem, com os comandos, as decisões 
 | 1. Corpus | Concluída | Nada |
 | 2. Conjunto ouro | Redigido e revisado por LLM | Validação humana das 75 perguntas |
 | 3. Baseline | Concluída | Nada |
-| 4. Avaliação | Métricas de busca prontas | Juiz confiável e rotulagem humana de 30 respostas |
+| 4. Avaliação | Métricas prontas; juiz `gemma3:12b` passou na sonda | Rotulagem humana de 30 respostas e concordância com o juiz |
 | 5. Experimentos | Não iniciada | Tudo |
 | 6. Entrega | Não iniciada | Tudo |
 
 Pendências que dependem de uma pessoa:
 
 1. Validar as 75 perguntas em `results/validacao_gold.md`.
-2. Rotular 30 respostas em `results/baseline/rotular.md`, preenchendo `results/baseline/rotulos.csv`.
+2. Rotular 30 respostas em `results/baseline/rotular.md`, preenchendo `results/baseline/rotulos.csv`. Nenhuma foi rotulada ainda. O passo a passo está em "Como rotular", na fase 4.
 
-Pendência em andamento quando este diário foi escrito: o download do modelo `gemma3:12b`, para substituir o juiz que falhou (ver fase 4).
+Para retomar o trabalho numa sessão nova:
+
+```bash
+cd ~/rag-leis && source .venv/bin/activate
+ollama serve                         # em outro terminal; ele não sobe sozinho
+export RAG_LEIS_JUIZ=gemma3:12b
+python -m rag_leis.evaluate --concordancia   # depois de preencher rotulos.csv
+```
+
+A fase 4 fecha quando a concordância entre o juiz e os rótulos humanos for de pelo menos 80% nas duas colunas. Se ficar abaixo, as alternativas são um juiz por API ou usar só os rótulos humanos.
 
 ## Máquina e versões
 
@@ -34,7 +43,7 @@ O que foi instalado fora da pasta do projeto:
 | --- | --- | --- |
 | Ollama | `~/.local/ollama`, com atalho em `~/.local/bin/ollama` | 1,4 GB compactado |
 | Modelo `gemma3:4b` | `~/.ollama/models` | 3,4 GB |
-| Modelo `gemma3:12b` | `~/.ollama/models` | 8 GB, em download |
+| Modelo `gemma3:12b` | `~/.ollama/models` | 8,2 GB |
 | Modelo de embedding `bge-m3` | `~/.cache/huggingface` | 2,2 GB |
 
 O Ollama foi instalado sem `sudo`, descompactando o pacote oficial na pasta do usuário. Por isso ele não sobe sozinho: é preciso rodar `ollama serve` num terminal antes de usar o sistema.
@@ -235,10 +244,12 @@ Com 5 ou 10 perguntas por tipo, os intervalos são muito largos. A diferença en
 
 - Abstenção correta: 5 de 5 nas perguntas fora do escopo.
 - Abstenção indevida: 8 das 34 perguntas com resposta no corpus, 6 delas de linguagem leiga. Na maioria, o artigo certo estava entre os trechos recuperados. É o problema mais claro do baseline.
-- Correção, segundo o juiz: 0,65 [0,47 a 0,79]. Ainda não validada contra rótulos humanos.
-- Fidelidade, segundo o juiz: 1,00 em 26 respostas. Esse número não vale, pelo motivo abaixo.
+- Correção, segundo o primeiro juiz (`gemma3:4b`): 0,65 [0,47 a 0,79].
+- Fidelidade, segundo o primeiro juiz: 1,00 em 26 respostas. Esse número não vale, pelo motivo abaixo.
 
-### O juiz falhou na sonda
+Os números do segundo juiz, que são os atuais, estão em "Segundo juiz: `gemma3:12b`".
+
+### O primeiro juiz falhou na sonda
 
 O valor de 100% pareceu bom demais. O juiz recebeu quatro respostas sobre os mesmos trechos do CDC, três delas falsas de propósito:
 
@@ -249,17 +260,69 @@ O valor de 100% pareceu bom demais. O juiz recebeu quatro respostas sobre os mes
 | Que contradiz o artigo ("as cláusulas são válidas") | Reprovar | Aprovou |
 | Verdadeira, mas de artigo que não foi recuperado | Reprovar | Reprovou |
 
-No caso do prazo, o juiz afirmou que os 45 dias estavam no art. 51. O resultado está em `results/baseline/sonda_juiz.json`.
+No caso do prazo, o juiz afirmou que os 45 dias estavam no art. 51. O resultado está em `results/baseline/sonda_juiz_gemma3-4b.json`.
 
 Decisão de Carla: trocar para um juiz local maior, `gemma3:12b`, e rodar a sonda nele antes de confiar. Se ele também falhar, as alternativas são um juiz por API ou a rotulagem humana.
+
+### Segundo juiz: `gemma3:12b`
+
+```bash
+ollama pull gemma3:12b
+export RAG_LEIS_JUIZ=gemma3:12b
+python -m rag_leis.evaluate --sondar
+python -m rag_leis.evaluate --juiz
+```
+
+O `gemma3:12b` acertou os quatro casos da sonda. Em dois deles o veredito está certo, mas a justificativa é fraca: no caso do artigo não recuperado, ele reprovou dizendo que a resposta não atende à pergunta, o que não é o critério de fidelidade. Quatro casos são um indício; a validação é a concordância com os rótulos humanos.
+
+Cada juiz passou a gravar em arquivos próprios (`julgamentos_gemma3-12b.jsonl`, `sonda_juiz_gemma3-12b.json`). Antes, o segundo juiz pularia todas as respostas por já estarem julgadas pelo primeiro, e sobrescreveria a sonda.
+
+Problema de memória: o servidor do Ollama guarda cerca de 1 GB de cache por conversa anterior. Com um modelo de 8 GB numa máquina de 15 GB, a memória e o swap encheram na quarta pergunta, e cada veredito passou de 30 segundos para 9 minutos. A correção foi o juiz pedir `keep_alive: 0`, que descarrega o modelo a cada chamada. Com isso, cada veredito leva cerca de 1 minuto e as 39 perguntas do `dev`, cerca de 55 minutos.
+
+Resultado no `dev`, segundo o `gemma3:12b`:
+
+| Tipo | Perguntas | Correção | Fidelidade |
+| --- | --- | --- | --- |
+| Geral | 34 | 0,74 [0,59 a 0,88] | 1,00 em 26 respostas |
+| Direta | 14 | 1,00 | 1,00 em 14 |
+| Linguagem leiga | 10 | 0,30 | 1,00 em 4 |
+| Vários artigos | 5 | 1,00 | 1,00 em 4 |
+| Termo exato | 5 | 0,60 | 1,00 em 4 |
+
+Os dois juízes divergiram na correção de 5 das 34 respostas (q003, q047, q055, q057 e q063) e em nenhuma de fidelidade. A fidelidade de 1,00 é plausível, porque o baseline quase sempre copia o texto do artigo, mas só vale depois da rotulagem humana.
+
+Um caso a observar: na q047 a resposta começa com "Não encontrei na base." e em seguida responde. O código conta como abstenção, por isso a fidelidade dela não é julgada, e o juiz a considerou correta.
 
 ### Validação humana do juiz
 
 O critério do roadmap é o juiz concordar com uma pessoa em pelo menos 80% de 30 respostas. A amostra de 30 respostas do `dev` está em `results/baseline/rotular.md`. Em 7 delas o sistema disse que não encontrou; nessas, a coluna `fiel` já vem com `-`, porque não há afirmação a conferir.
 
+### Como rotular
+
+Rotular é dar a opinião de uma pessoa sobre cada resposta, para ter com o que comparar o juiz. Cada resposta recebe duas notas, `sim` ou `nao`, e cada nota compara a resposta do sistema com uma coisa diferente:
+
+| Coluna | Compara a resposta do sistema com | Pergunta a responder |
+| --- | --- | --- |
+| `correta` | A resposta esperada | Traz o ponto principal do gabarito, ainda que com outras palavras? |
+| `fiel` | Os trechos recuperados | Tudo o que ela afirma está escrito nos trechos? |
+
+As duas são independentes. Uma resposta que copia fielmente um artigo que não responde à pergunta é fiel e não é correta. Uma resposta certa com um detalhe que não está nos trechos é correta e não é fiel.
+
+Passos:
+
+1. Abrir `rotular.md` no bloco da pergunta e ler a pergunta, a resposta esperada e a resposta do sistema.
+2. Decidir `correta`.
+3. Conferir cada afirmação da resposta nos trechos e decidir `fiel`.
+4. Preencher a linha no `rotulos.csv`, na ordem `id,fiel,correta`. Exemplo: `q013,sim,sim`.
+5. Nas 7 linhas com `-`, deixar o `-` e preencher só `correta`. Exemplo: `q028,-,nao`.
+
+Regras: não abrir `julgamentos_*.jsonl` antes de terminar, para não ver a opinião do juiz; usar só `sim`, `nao` ou `-`, porque qualquer outra palavra fica fora da conta; manter o mesmo critério do início ao fim.
+
+Combinado com Carla: a rotulagem pode ser feita na conversa, uma resposta por vez, com o Claude Code mostrando o bloco sem dar opinião e preenchendo o arquivo com a resposta dela.
+
 ## Testes
 
-O projeto tem 35 testes, em `tests/`:
+O projeto tem 36 testes, em `tests/`:
 
 | Arquivo | O que confere |
 | --- | --- |
@@ -269,7 +332,7 @@ O projeto tem 35 testes, em `tests/`:
 | `test_corpus.py` | Ids únicos, numeração sem buraco, nada de assinatura, nenhuma linha de fora |
 | `test_gold.py` | Campos, artigos existentes no corpus, tamanho e divisão |
 | `test_generate.py` | Montagem do prompt e corte de artigo longo |
-| `test_evaluate.py` | Recall, MRR, acerto, abstenção, bootstrap |
+| `test_evaluate.py` | Recall, MRR, acerto, abstenção, bootstrap, arquivo por juiz |
 
 ```bash
 pytest
@@ -294,9 +357,14 @@ black --check .
 | `69ff6f6` | Saídas do baseline nas 75 perguntas; fase 3 concluída |
 | `5c990b6` | Avaliação: métricas de busca, abstenção e juiz LLM (fase 4) |
 | `cdab1f7` | Métricas do baseline no `dev` e a sonda do juiz |
+| `d2005e9` | Diário do projeto com os passos das fases 0 a 4 |
+| `9d42989` | Juiz `gemma3:12b`, arquivos por juiz, correção de memória e métricas novas do `dev` |
 
 ## Erros meus durante o trabalho
 
 - Na nota de revisão do conjunto ouro, citei dois ids errados (q061 e q067 no lugar de q057 e q063). Corrigido no commit seguinte.
 - Um teste meu acusou parágrafo repetido no art. 174 da Lei 14.133. Era falso alarme: "§ 3º-A" é um parágrafo distinto de "§ 3º". O teste foi corrigido.
+- Rodei o juiz `gemma3:12b` nas 39 perguntas sem medir antes o consumo de memória. A máquina entrou em swap e a rodada ficou parada por 15 minutos até eu perceber.
+- Para matar essa rodada usei `pkill -f` com um padrão que também casava com o meu próprio comando, e o terminal caiu junto. Nada se perdeu, porque o julgamento grava a cada resposta e é retomável.
+- Contei os rótulos preenchidos com um comando que não tratava o fim de linha do `rotulos.csv` e li "30 preenchidos". O arquivo estava vazio; conferi abrindo o conteúdo antes de informar.
 - Ao regenerar `results/conferencia_fase1.md` depois da remoção da palavra "Vigência", o arquivo voltou com as caixas desmarcadas. Elas foram remarcadas depois que Carla confirmou a conferência.

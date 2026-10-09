@@ -6,13 +6,13 @@ Sistema de perguntas e respostas (RAG) sobre três leis brasileiras, com uma tab
 
 ## Status
 
-Em construção. O corpus está gerado (406 artigos das três leis); ainda não há busca nem geração.
+Em construção. O corpus (406 artigos das três leis) e o conjunto ouro (75 perguntas) estão gerados; ainda não há busca nem geração.
 
 | Fase | Entregável | Situação |
 | --- | --- | --- |
 | 0. Ambiente | Repositório com estrutura de pastas, lint e teste | Concluída |
 | 1. Corpus | `corpus.jsonl`, um registro por artigo | Gerado; falta a conferência manual de 20 artigos |
-| 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | A fazer |
+| 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | Redigido; falta a validação manual das perguntas |
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | A fazer |
 | 4. Avaliação | `evaluate.py` e números do baseline | A fazer |
 | 5. Experimentos | Tabela de resultados e análise de erros | A fazer |
@@ -39,6 +39,22 @@ python -m rag_leis.chunk
 ```
 
 A amostra para conferência manual está em `results/conferencia_fase1.md`.
+
+## Conjunto ouro
+
+`data/gold/gold.jsonl` tem 75 perguntas, cada uma com a resposta esperada e os artigos do corpus que a contêm. Foi escrito antes de existir qualquer busca.
+
+| Tipo | Perguntas | O que testa |
+| --- | --- | --- |
+| `direta` | 27 | O caso básico |
+| `leiga` | 19 | Busca por significado, sem as palavras da lei |
+| `varios_artigos` | 10 | Recuperar mais de um trecho |
+| `termo_exato` | 10 | Busca por palavra-chave |
+| `fora_do_escopo` | 9 | Se o sistema admite que não sabe |
+
+A divisão é de 39 perguntas em `dev` e 36 em `test`, metade de cada tipo em cada parte. O sistema é ajustado olhando só o `dev`; o `test` é usado uma única vez, no resultado final.
+
+As perguntas foram redigidas por um LLM a partir do texto do corpus e ainda precisam de validação humana, uma a uma. A lista para isso está em `results/validacao_gold.md`.
 
 ## Estrutura
 

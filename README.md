@@ -18,7 +18,7 @@ Em construção. O sistema responde perguntas de ponta a ponta com busca densa e
 | 5. Experimentos | Tabela de resultados e análise de erros | A fazer |
 | 6. Entrega | App e demo | A fazer |
 
-O plano completo, com conceitos, métricas e armadilhas, está em [Roadmap RAG jurídico com avaliação](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md).
+O plano completo, com conceitos, métricas e armadilhas, está em [Roadmap RAG jurídico com avaliação](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md). O que foi feito em cada fase, passo a passo, com os problemas encontrados, está no [diário do projeto](DIARIO.md).
 
 ## Corpus
 

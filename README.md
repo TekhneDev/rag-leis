@@ -6,12 +6,12 @@ Sistema de perguntas e respostas (RAG) sobre três leis brasileiras, com uma tab
 
 ## Status
 
-Em construção. A fase 0 (ambiente) está concluída; ainda não há corpus, busca nem geração.
+Em construção. O corpus está gerado (406 artigos das três leis); ainda não há busca nem geração.
 
 | Fase | Entregável | Situação |
 | --- | --- | --- |
 | 0. Ambiente | Repositório com estrutura de pastas, lint e teste | Concluída |
-| 1. Corpus | `corpus.jsonl`, um registro por artigo | A fazer |
+| 1. Corpus | `corpus.jsonl`, um registro por artigo | Gerado; falta a conferência manual de 20 artigos |
 | 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | A fazer |
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | A fazer |
 | 4. Avaliação | `evaluate.py` e números do baseline | A fazer |
@@ -20,13 +20,25 @@ Em construção. A fase 0 (ambiente) está concluída; ainda não há corpus, bu
 
 O plano completo, com conceitos, métricas e armadilhas, está em [Roadmap RAG jurídico com avaliação](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md).
 
-## Corpus planejado
+## Corpus
 
-Versões compiladas publicadas no site do Planalto:
+Texto publicado no site do Planalto, baixado em 9 de outubro de 2026, sem os trechos revogados:
 
-- Lei 14.133/2021 (licitações e contratos administrativos)
-- Lei 13.709/2018 (LGPD)
-- Lei 8.078/1990 (Código de Defesa do Consumidor)
+| Lei | Registros | Último artigo |
+| --- | --- | --- |
+| Lei 13.709/2018 (LGPD) | 80 | 65 |
+| Lei 8.078/1990 (Código de Defesa do Consumidor) | 130 | 119 |
+| Lei 14.133/2021 (licitações e contratos administrativos) | 196 | 194 |
+
+Há mais registros do que o número do último artigo porque artigos incluídos depois ganham letra (por exemplo, art. 55-A). Cada linha de `data/processed/corpus.jsonl` tem `id`, `lei`, `artigo`, `titulo`, `capitulo` e `texto`.
+
+Para gerar o corpus de novo (baixa as páginas para `data/raw/` se ainda não estiverem lá):
+
+```bash
+python -m rag_leis.chunk
+```
+
+A amostra para conferência manual está em `results/conferencia_fase1.md`.
 
 ## Estrutura
 

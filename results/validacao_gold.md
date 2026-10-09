@@ -14,12 +14,25 @@ O que foi conferido:
 - Prazos, percentuais e valores de cada resposta foram procurados no texto do artigo esperado. Todos aparecem (no CDC, por extenso: "trinta dias", "noventa dias", "cinco anos").
 - Os temas das 9 perguntas fora do escopo foram procurados no corpus. Nenhum tem resposta lá.
 
-Pontos para você decidir:
+Artigos correlatos aceitos:
 
-- **q031** (revogar consentimento): o artigo esperado é o `lgpd-art-8`, que traz a regra. Os arts. 15 e 18 da LGPD também citam a revogação, remetendo ao art. 8º. Se a busca trouxer só o 18, a métrica conta erro.
-- **q045** (empresa punida): o esperado é o `licitacoes-art-14`. O `licitacoes-art-156` descreve a sanção de impedimento e também ajudaria a responder.
-- **q063** (inversão do ônus da prova): o esperado é o `cdc-art-6`. O termo aparece também no `cdc-art-51`, como cláusula proibida.
-- **q034** (com quem falar na empresa): o esperado é o `lgpd-art-41`. O `lgpd-art-5` traz a definição de encarregado.
+Cada pergunta foi cruzada com os artigos que citam o artigo esperado, com os que ele cita e com os que usam os mesmos termos. Onde outro artigo também responde, no todo ou em parte, ele entrou no campo `artigos_aceitos`. Recuperar um artigo aceito não conta como erro, mas não substitui o esperado.
+
+- **q002**: `lgpd-art-4`. Motivo: o art. 4º lista os tratamentos a que a lei não se aplica.
+- **q007**: `lgpd-art-43`, `lgpd-art-44`. Motivo: o art. 43 traz as hipóteses em que os agentes não respondem; o art. 44 trata da responsabilidade por falha de segurança.
+- **q020**: `licitacoes-art-6`. Motivo: o art. 6º define cada modalidade (incisos XXXVIII a XLII).
+- **q028**: `lgpd-art-15`, `lgpd-art-18`. Motivo: o art. 15 diz quando o tratamento termina; o art. 18, VI, dá o direito de pedir a eliminação.
+- **q031**: `lgpd-art-15`, `lgpd-art-18`. Motivo: os arts. 15, III, e 18, IX, citam a revogação e remetem ao art. 8º.
+- **q034**: `lgpd-art-5`. Motivo: o art. 5º, VIII, define o encarregado como canal de comunicação com os titulares.
+- **q038**: `cdc-art-30`. Motivo: o art. 30 diz que a oferta obriga o fornecedor.
+- **q041**: `cdc-art-24`. Motivo: o art. 24 diz que a garantia legal independe de termo e não pode ser afastada por contrato.
+- **q045**: `licitacoes-art-156`. Motivo: o art. 156, § 4º, diz que o impedimento proíbe licitar e contratar.
+- **q046**: `licitacoes-art-174`. Motivo: o art. 174 cria o PNCP para divulgação centralizada e obrigatória dos atos.
+- **q053**: `licitacoes-art-72`. Motivo: o art. 72 diz que a contratação direta compreende inexigibilidade e dispensa.
+- **q063**: `cdc-art-51`. Motivo: o art. 51, VI, anula a cláusula que inverta o ônus da prova contra o consumidor.
+
+Pontos que continuam em aberto:
+
 - **q075** (Marco Civil): o `lgpd-art-60` cita o Marco Civil da Internet, mas não diz por quanto tempo os provedores guardam registros. Continua fora do escopo e é a mais difícil das nove, porque a busca vai trazer esse artigo.
 - **q043 e q057** (dispensa por valor): as respostas usam R$ 50.000,00 e R$ 100.000,00, que são os valores do texto da lei. A atualização desses valores por decreto não está no corpus.
 
@@ -30,6 +43,7 @@ Pontos para você decidir:
   - Resposta esperada: Proteger os direitos fundamentais de liberdade e de privacidade e o livre desenvolvimento da personalidade da pessoa natural, disciplinando o tratamento de dados pessoais, inclusive nos meios digitais.
 - [ ] **q002** (test) A quais operações de tratamento de dados a LGPD se aplica?
   - Artigos: `lgpd-art-3`
+  - Também aceitos: `lgpd-art-4`
   - Resposta esperada: A qualquer operação de tratamento, independentemente do meio, do país da sede ou de onde estejam os dados, desde que a operação seja realizada no território nacional, tenha por objetivo ofertar bens ou serviços ou tratar dados de indivíduos localizados no território nacional, ou os dados tenham sido coletados no território nacional.
 - [ ] **q003** (dev) Quais princípios as atividades de tratamento de dados pessoais devem observar?
   - Artigos: `lgpd-art-6`
@@ -45,6 +59,7 @@ Pontos para você decidir:
   - Resposta esperada: Confirmação da existência de tratamento; acesso aos dados; correção de dados incompletos, inexatos ou desatualizados; anonimização, bloqueio ou eliminação de dados desnecessários ou excessivos; portabilidade; eliminação dos dados tratados com consentimento; informação sobre com quem os dados foram compartilhados; informação sobre a possibilidade de não consentir; e revogação do consentimento.
 - [ ] **q007** (dev) Quem responde pelos danos causados pelo tratamento de dados pessoais em violação à lei?
   - Artigos: `lgpd-art-42`
+  - Também aceitos: `lgpd-art-43`, `lgpd-art-44`
   - Resposta esperada: O controlador ou o operador que causar dano patrimonial, moral, individual ou coletivo é obrigado a repará-lo. O operador responde solidariamente quando descumpre a legislação ou não segue as instruções lícitas do controlador, e os controladores diretamente envolvidos respondem solidariamente.
 - [ ] **q008** (test) Em que casos a transferência internacional de dados pessoais é permitida?
   - Artigos: `lgpd-art-33`
@@ -84,6 +99,7 @@ Pontos para você decidir:
   - Resposta esperada: Em sequência: preparatória; divulgação do edital; apresentação de propostas e lances, quando for o caso; julgamento; habilitação; recursal; e homologação.
 - [ ] **q020** (test) Quais são as modalidades de licitação?
   - Artigos: `licitacoes-art-28`
+  - Também aceitos: `licitacoes-art-6`
   - Resposta esperada: Pregão, concorrência, concurso, leilão e diálogo competitivo. É vedado criar outras modalidades ou combinar essas.
 - [ ] **q021** (dev) Quais são os critérios de julgamento das propostas em uma licitação?
   - Artigos: `licitacoes-art-33`
@@ -111,6 +127,7 @@ Pontos para você decidir:
 
 - [ ] **q028** (dev) Cancelei minha conta num aplicativo. A empresa pode continuar guardando meus dados?
   - Artigos: `lgpd-art-16`
+  - Também aceitos: `lgpd-art-15`, `lgpd-art-18`
   - Resposta esperada: Em regra não: os dados devem ser eliminados após o término do tratamento. A conservação só é autorizada para cumprir obrigação legal ou regulatória, para estudo por órgão de pesquisa, para transferência a terceiro dentro das regras da lei, ou para uso exclusivo do controlador com os dados anonimizados.
 - [ ] **q029** (test) Um sistema automático recusou meu pedido de crédito. Posso pedir que essa decisão seja reavaliada?
   - Artigos: `lgpd-art-20`
@@ -120,6 +137,7 @@ Pontos para você decidir:
   - Resposta esperada: Não. O tratamento de dados de crianças exige consentimento específico e em destaque de pelo menos um dos pais ou do responsável legal. A exceção é a coleta para contatar os pais ou para proteção da criança, sem armazenamento. O jogo também não pode exigir mais dados do que o estritamente necessário.
 - [ ] **q031** (test) Autorizei uma empresa a usar meus dados e me arrependi. Dá para voltar atrás?
   - Artigos: `lgpd-art-8`
+  - Também aceitos: `lgpd-art-15`, `lgpd-art-18`
   - Resposta esperada: Sim. O consentimento pode ser revogado a qualquer momento, por manifestação expressa do titular, em procedimento gratuito e facilitado.
 - [ ] **q032** (dev) Houve um vazamento numa loja onde tenho cadastro. A loja é obrigada a me avisar?
   - Artigos: `lgpd-art-48`
@@ -129,6 +147,7 @@ Pontos para você decidir:
   - Resposta esperada: Imediatamente, em formato simplificado, ou em até 15 dias, por meio de declaração clara e completa, contados da data do requerimento.
 - [ ] **q034** (dev) Com quem eu falo dentro de uma empresa para reclamar de como ela usa os meus dados?
   - Artigos: `lgpd-art-41`
+  - Também aceitos: `lgpd-art-5`
   - Resposta esperada: Com o encarregado pelo tratamento de dados pessoais, que o controlador deve indicar. A identidade e o contato do encarregado devem ser divulgados publicamente, de preferência no site, e cabe a ele receber reclamações dos titulares.
 - [ ] **q035** (test) Comprei pela internet e me arrependi, posso devolver?
   - Artigos: `cdc-art-49`
@@ -141,6 +160,7 @@ Pontos para você decidir:
   - Resposta esperada: Sim. O consumidor cobrado em quantia indevida tem direito à devolução em dobro do que pagou em excesso, com correção monetária e juros legais, salvo engano justificável.
 - [ ] **q038** (dev) A loja anunciou um preço e na hora se recusou a vender por ele. O que eu posso fazer?
   - Artigos: `cdc-art-35`
+  - Também aceitos: `cdc-art-30`
   - Resposta esperada: O consumidor pode escolher entre exigir o cumprimento forçado da oferta, aceitar outro produto ou serviço equivalente, ou rescindir o contrato com restituição do que pagou, atualizado, e perdas e danos.
 - [ ] **q039** (test) Meu celular novo deu defeito e a assistência não consertou em mais de um mês. Quais são as minhas opções?
   - Artigos: `cdc-art-18`
@@ -150,6 +170,7 @@ Pontos para você decidir:
   - Resposta esperada: Os cadastros de consumidores não podem conter informações negativas referentes a período superior a cinco anos.
 - [ ] **q041** (test) A loja me deu um ano de garantia. Isso vale no lugar da garantia que a lei já dá?
   - Artigos: `cdc-art-50`
+  - Também aceitos: `cdc-art-24`
   - Resposta esperada: Não. A garantia contratual é complementar à legal e deve ser conferida mediante termo escrito.
 - [ ] **q042** (dev) O banco fica me ligando e insistindo para eu pegar um empréstimo, e eu sou idoso. Isso é permitido?
   - Artigos: `cdc-art-54-C`
@@ -162,9 +183,11 @@ Pontos para você decidir:
   - Resposta esperada: Não. A licitação é inexigível para contratar profissional do setor artístico, diretamente ou por empresário exclusivo, desde que consagrado pela crítica especializada ou pela opinião pública.
 - [ ] **q045** (test) Uma empresa que está cumprindo punição pode entrar em uma nova licitação?
   - Artigos: `licitacoes-art-14`
+  - Também aceitos: `licitacoes-art-156`
   - Resposta esperada: Não. Não pode disputar licitação quem, ao tempo da licitação, esteja impossibilitado de participar em decorrência de sanção que lhe foi imposta.
 - [ ] **q046** (dev) Onde encontro os editais de licitação que o governo publica?
   - Artigos: `licitacoes-art-54`
+  - Também aceitos: `licitacoes-art-174`
   - Resposta esperada: No Portal Nacional de Contratações Públicas (PNCP), onde o inteiro teor do edital e de seus anexos deve ser divulgado e mantido. Também é obrigatória a publicação de extrato no Diário Oficial e em jornal diário de grande circulação.
 
 ## Vários artigos
@@ -189,6 +212,7 @@ Pontos para você decidir:
   - Resposta esperada: Pelo produto respondem o fabricante, o produtor, o construtor e o importador; pelo serviço, o fornecedor de serviços. Em ambos os casos a responsabilidade independe da existência de culpa.
 - [ ] **q053** (dev) Em que situações a Administração pode contratar sem fazer licitação?
   - Artigos: `licitacoes-art-74`, `licitacoes-art-75`
+  - Também aceitos: `licitacoes-art-72`
   - Resposta esperada: Quando a licitação é inexigível, por ser inviável a competição, como no fornecedor exclusivo, no artista consagrado e nos serviços técnicos de notória especialização; e quando é dispensável, como nas contratações de pequeno valor e nas demais hipóteses listadas na lei.
 - [ ] **q054** (test) A Administração pode alterar o contrato sozinha? Até que ponto a empresa contratada é obrigada a aceitar?
   - Artigos: `licitacoes-art-124`, `licitacoes-art-125`
@@ -222,6 +246,7 @@ Pontos para você decidir:
   - Resposta esperada: Que todos os documentos de cobrança de débitos apresentados ao consumidor devem trazer o nome, o endereço e o CPF ou CNPJ do fornecedor do produto ou serviço.
 - [ ] **q063** (dev) O que o Código de Defesa do Consumidor diz sobre a inversão do ônus da prova?
   - Artigos: `cdc-art-6`
+  - Também aceitos: `cdc-art-51`
   - Resposta esperada: É direito básico do consumidor a facilitação da defesa de seus direitos, inclusive com a inversão do ônus da prova a seu favor no processo civil, quando, a critério do juiz, for verossímil a alegação ou quando ele for hipossuficiente.
 - [ ] **q064** (test) O que diz o art. 46 da LGPD?
   - Artigos: `lgpd-art-46`

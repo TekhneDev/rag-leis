@@ -44,6 +44,11 @@ Uma amostra de 20 artigos sorteados foi conferida à mão contra o original; o r
 
 `data/gold/gold.jsonl` tem 75 perguntas, cada uma com a resposta esperada e os artigos do corpus que a contêm. Foi escrito antes de existir qualquer busca.
 
+Cada pergunta tem dois campos de artigos:
+
+- `artigos_esperados`: os artigos que precisam ser recuperados para a resposta estar completa. É sobre eles que o recall é calculado.
+- `artigos_aceitos`: artigos correlatos que também respondem, no todo ou em parte (12 perguntas têm algum). Recuperar um deles não conta como erro, mas não substitui o esperado.
+
 | Tipo | Perguntas | O que testa |
 | --- | --- | --- |
 | `direta` | 27 | O caso básico |

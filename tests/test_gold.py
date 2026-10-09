@@ -33,6 +33,7 @@ def test_campos_e_valores(gold: list[dict]) -> None:
             "tipo",
             "pergunta",
             "artigos_esperados",
+            "artigos_aceitos",
             "resposta_esperada",
             "split",
         }
@@ -52,6 +53,16 @@ def test_artigos_esperados_existem_no_corpus(gold: list[dict]) -> None:
     ids = {registro["id"] for registro in _ler(CORPUS)}
     for item in gold:
         assert set(item["artigos_esperados"]) <= ids, item["id"]
+
+
+def test_artigos_aceitos_existem_e_nao_repetem_os_esperados(gold: list[dict]) -> None:
+    ids = {registro["id"] for registro in _ler(CORPUS)}
+    for item in gold:
+        aceitos = set(item["artigos_aceitos"])
+        assert aceitos <= ids, item["id"]
+        assert not aceitos & set(item["artigos_esperados"]), item["id"]
+        if item["tipo"] == "fora_do_escopo":
+            assert not aceitos, item["id"]
 
 
 def test_quantidade_de_artigos_combina_com_o_tipo(gold: list[dict]) -> None:

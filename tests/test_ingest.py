@@ -29,3 +29,10 @@ def test_descarta_marcacao_de_vigencia_encerrada() -> None:
         limpar(_pagina("<p>Art. 1º Vale.</p><p>Vigência encerrada</p>"))
         == "Art. 1º Vale."
     )
+
+
+def test_remove_link_de_vigencia_no_fim_do_dispositivo() -> None:
+    html = _pagina(
+        '<p>II - compras; <a href="#art194">Vigência</a> <a href="#x">(Vigência)</a></p>'
+    )
+    assert limpar(html) == "II - compras;"

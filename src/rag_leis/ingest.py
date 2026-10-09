@@ -14,6 +14,8 @@ _RISCADO = re.compile(r"line-through", re.IGNORECASE)
 _ESPACOS = re.compile(r"[ \t\r\f\v\xa0]+")
 # Marcações do Planalto que sobram sozinhas na linha depois que o texto riscado sai.
 _ANOTACOES = {"Vigência encerrada"}
+# Links de navegação que o Planalto põe no fim do dispositivo e não são texto da lei.
+_LINKS_DE_ANOTACAO = {"Vigência"}
 
 
 @dataclass(frozen=True)
@@ -67,6 +69,9 @@ def limpar(html_bytes: bytes) -> str:
         tag.decompose()
     for tag in soup.find_all(style=_RISCADO):
         tag.decompose()
+    for link in soup.find_all("a"):
+        if _ESPACOS.sub(" ", link.get_text(" ")).strip(" ()\n") in _LINKS_DE_ANOTACAO:
+            link.decompose()
     for quebra in soup.find_all("br"):
         quebra.replace_with(" ")
 

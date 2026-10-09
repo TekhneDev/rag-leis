@@ -6,7 +6,7 @@ Sistema de perguntas e respostas (RAG) sobre três leis brasileiras, com uma tab
 
 ## Status
 
-Em construção. O sistema já responde perguntas de ponta a ponta com busca densa e um LLM local; ainda não há métricas.
+Em construção. O sistema responde perguntas de ponta a ponta com busca densa e um LLM local, e o baseline já tem métricas de busca. As métricas de geração ainda não são confiáveis, porque o juiz não passou na validação.
 
 | Fase | Entregável | Situação |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Em construção. O sistema já responde perguntas de ponta a ponta com busca den
 | 1. Corpus | `corpus.jsonl`, um registro por artigo | Concluída |
 | 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | Redigido; falta a validação manual das perguntas |
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | Concluída |
-| 4. Avaliação | `evaluate.py` e números do baseline | A fazer |
+| 4. Avaliação | `evaluate.py` e números do baseline | Métricas prontas; o juiz de fidelidade falhou na sonda e falta a rotulagem humana |
 | 5. Experimentos | Tabela de resultados e análise de erros | A fazer |
 | 6. Entrega | App e demo | A fazer |
 
@@ -61,6 +61,39 @@ A divisão é de 39 perguntas em `dev` e 36 em `test`, metade de cada tipo em ca
 
 As perguntas foram redigidas por um LLM a partir do texto do corpus e ainda precisam de validação humana, uma a uma. A lista para isso está em `results/validacao_gold.md`.
 
+## Resultados do baseline
+
+Tudo abaixo é do split `dev` (39 perguntas, 34 com artigo esperado). O `test` não foi medido e só será no fim do projeto. A amostra é pequena: os intervalos de 95%, por bootstrap, são largos, e diferenças entre tipos de pergunta são indício, não prova.
+
+### Busca
+
+| Tipo | Perguntas | Recall@1 | Recall@5 | MRR |
+| --- | --- | --- | --- | --- |
+| Geral | 34 | 0,63 | 0,85 [0,74 a 0,96] | 0,76 |
+| Direta | 14 | 0,93 | 1,00 | 0,95 |
+| Linguagem leiga | 10 | 0,40 | 0,80 [0,50 a 1,00] | 0,53 |
+| Vários artigos | 5 | 0,50 | 0,80 [0,60 a 1,00] | 1,00 |
+| Termo exato | 5 | 0,40 | 0,60 [0,20 a 1,00] | 0,45 |
+
+Essas métricas são código puro, sem LLM: comparam os ids recuperados com `artigos_esperados`.
+
+### Geração
+
+- Abstenção correta: nas 5 perguntas fora do escopo, o sistema respondeu "Não encontrei na base." em todas.
+- Abstenção indevida: em 8 das 34 perguntas com resposta no corpus o sistema também disse que não encontrou, 6 delas de linguagem leiga. Na maioria o artigo certo estava entre os trechos recuperados.
+- Correção, segundo o juiz LLM: 0,65 [0,47 a 0,79]. Ainda não validada contra rótulos humanos.
+- Fidelidade, segundo o juiz LLM: 1,00 em 26 respostas. **Esse número não vale.** Numa sonda com três respostas falsas de propósito, o juiz (`gemma3:4b`, o mesmo modelo que gera as respostas) aprovou duas: uma com prazo inventado e uma que contradiz o artigo. O resultado está em `results/baseline/sonda_juiz.json`.
+
+Para reproduzir:
+
+```bash
+python -m rag_leis.evaluate            # busca e abstenção
+python -m rag_leis.evaluate --juiz     # inclui o juiz LLM
+python -m rag_leis.evaluate --sondar   # testa o juiz com respostas falsas
+```
+
+A validação humana do juiz usa `results/baseline/rotular.md` (30 respostas para ler) e `results/baseline/rotulos.csv` (para preencher), e é conferida com `python -m rag_leis.evaluate --concordancia`.
+
 ## Estrutura
 
 ```text
@@ -77,6 +110,7 @@ rag-leis/
     generate.py      # prompt e chamada ao LLM
     responder.py     # uma pergunta de ponta a ponta
     baseline.py      # conjunto ouro inteiro
+    evaluate.py      # métricas
   experiments/       # um arquivo de configuração por experimento
   results/           # saídas e tabela final
   tests/

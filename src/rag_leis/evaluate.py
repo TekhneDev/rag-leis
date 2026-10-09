@@ -5,6 +5,7 @@ Uso:
     python -m rag_leis.evaluate --juiz           inclui fidelidade e correção
     python -m rag_leis.evaluate --rotular        gera a amostra para você rotular
     python -m rag_leis.evaluate --concordancia   compara seus rótulos com os do juiz
+    python -m rag_leis.evaluate --sondar         testa o juiz com respostas falsas de propósito
     python -m rag_leis.evaluate --split test     só no fim do projeto, uma única vez
 """
 
@@ -254,6 +255,75 @@ def concordancia(pasta: Path) -> dict:
     return resultado
 
 
+# Respostas sobre os mesmos cinco artigos do CDC, com o veredito que um bom juiz daria.
+ARTIGOS_DA_SONDA = [
+    "cdc-art-51",
+    "cdc-art-39",
+    "cdc-art-37",
+    "cdc-art-54",
+    "cdc-art-107",
+]
+SONDA = [
+    (
+        "apoiada nos trechos",
+        (
+            "São nulas de pleno direito as cláusulas que transfiram responsabilidades a terceiros "
+            "(Lei 8.078/1990, art. 51, III)."
+        ),
+        True,
+    ),
+    (
+        "prazo inventado",
+        (
+            "São nulas as cláusulas abusivas, e o consumidor tem 45 dias para pedir a anulação ao "
+            "Procon (Lei 8.078/1990, art. 51)."
+        ),
+        False,
+    ),
+    (
+        "contradiz o trecho",
+        (
+            "As cláusulas que exonerem a responsabilidade do fornecedor por vícios são válidas e "
+            "plenamente eficazes (Lei 8.078/1990, art. 51)."
+        ),
+        False,
+    ),
+    (
+        "verdadeira, mas de artigo que não foi recuperado",
+        (
+            "O consumidor pode desistir da compra em 7 dias quando ela é feita fora do "
+            "estabelecimento comercial (Lei 8.078/1990, art. 49)."
+        ),
+        False,
+    ),
+]
+
+
+def sondar_juiz() -> list[dict]:
+    """Mostra se o juiz de fidelidade consegue reprovar uma resposta que deveria reprovar."""
+    artigos = {registro["id"]: registro for registro in carregar_corpus()}
+    trechos = montar_prompt(
+        "O que é cláusula abusiva?", [artigos[i] for i in ARTIGOS_DA_SONDA]
+    )
+    resultados = []
+    for caso, resposta, esperado in SONDA:
+        veredito = _perguntar_ao_juiz(
+            JUIZ_FIDELIDADE, f"{trechos}\n\nResposta a avaliar: {resposta}", "fiel"
+        )
+        resultados.append(
+            {
+                "caso": caso,
+                "resposta": resposta,
+                "fiel_esperado": esperado,
+                "fiel_juiz": veredito.get("fiel"),
+                "juiz_acertou": veredito.get("fiel") == esperado,
+                "justificativa": veredito["justificativa_fiel"],
+                "juiz": MODELO_JUIZ,
+            }
+        )
+    return resultados
+
+
 def _imprimir(resumo: dict) -> None:
     for grupo, metricas in resumo.items():
         print(f"\n{grupo}")
@@ -271,7 +341,19 @@ def main() -> None:
     argumentos.add_argument("--juiz", action="store_true")
     argumentos.add_argument("--rotular", action="store_true")
     argumentos.add_argument("--concordancia", action="store_true")
+    argumentos.add_argument("--sondar", action="store_true")
     opcoes = argumentos.parse_args()
+
+    if opcoes.sondar:
+        resultados = sondar_juiz()
+        destino = opcoes.pasta / "sonda_juiz.json"
+        destino.write_text(
+            json.dumps(resultados, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        for resultado in resultados:
+            situacao = "acertou" if resultado["juiz_acertou"] else "ERROU"
+            print(f"{situacao:<8} {resultado['caso']}")
+        return
 
     todas = _ler(GOLD)
     saidas = _ler(opcoes.pasta / "saidas.jsonl")

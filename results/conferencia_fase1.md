@@ -3,11 +3,13 @@
 Amostra de 20 artigos sorteados do `corpus.jsonl` com `random.seed(42)`.
 Abra a página do Planalto, localize o artigo e compare linha a linha com o texto abaixo. Marque a caixa quando conferir.
 
-Conferência automática já feita: as 20 amostras aparecem inteiras e contíguas no HTML original. Falta a leitura humana, que é o critério de pronto da fase.
+Conferência automática: as 20 amostras aparecem inteiras e contíguas no HTML original.
+
+Conferência manual: feita por Carla Braga em 9 de outubro de 2026, nos 20 artigos, sem divergências registradas.
 
 ## Lei 13.709/2018, art. 13
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
 - id: `lgpd-art-13`
 - título: (sem título)
 - capítulo: DO TRATAMENTO DE DADOS PESSOAIS
@@ -22,7 +24,7 @@ Art. 13. Na realização de estudos em saúde pública, os órgãos de pesquisa 
 
 ## Lei 13.709/2018, art. 16
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
 - id: `lgpd-art-16`
 - título: (sem título)
 - capítulo: DO TRATAMENTO DE DADOS PESSOAIS
@@ -37,7 +39,7 @@ IV - uso exclusivo do controlador, vedado seu acesso por terceiro, e desde que a
 
 ## Lei 13.709/2018, art. 17
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
 - id: `lgpd-art-17`
 - título: (sem título)
 - capítulo: DOS DIREITOS DO TITULAR
@@ -48,7 +50,7 @@ Art. 17. Toda pessoa natural tem assegurada a titularidade de seus dados pessoai
 
 ## Lei 13.709/2018, art. 45
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
 - id: `lgpd-art-45`
 - título: (sem título)
 - capítulo: DOS AGENTES DE TRATAMENTO DE DADOS PESSOAIS
@@ -59,7 +61,7 @@ Art. 45. As hipóteses de violação do direito do titular no âmbito das relaç
 
 ## Lei 13.709/2018, art. 48
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
 - id: `lgpd-art-48`
 - título: (sem título)
 - capítulo: DA SEGURANÇA E DAS BOAS PRÁTICAS
@@ -81,7 +83,7 @@ II - medidas para reverter ou mitigar os efeitos do incidente.
 
 ## Lei 13.709/2018, art. 53
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
 - id: `lgpd-art-53`
 - título: (sem título)
 - capítulo: DA FISCALIZAÇÃO
@@ -94,7 +96,7 @@ Art. 53. A autoridade nacional definirá, por meio de regulamento próprio sobre
 
 ## Lei 13.709/2018, art. 55-C
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
 - id: `lgpd-art-55-C`
 - título: (sem título)
 - capítulo: DA AGÊNCIA NACIONAL DE PROTEÇÃO DE DADOS E DO CONSELHO NACIONAL DE PROTEÇÃO DE DADOS PESSOAIS E DA PRIVACIDADE
@@ -113,7 +115,7 @@ VI - unidades administrativas e unidades especializadas. (Redação dada pela Le
 
 ## Lei 13.709/2018, art. 58-A
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm)
 - id: `lgpd-art-58-A`
 - título: (sem título)
 - capítulo: DA AGÊNCIA NACIONAL DE PROTEÇÃO DE DADOS E DO CONSELHO NACIONAL DE PROTEÇÃO DE DADOS PESSOAIS E DA PRIVACIDADE
@@ -142,7 +144,7 @@ III - terão mandato de 2 (dois) anos, permitida 1 (uma) recondução. (Incluíd
 
 ## Lei 8.078/1990, art. 32
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
 - id: `cdc-art-32`
 - título: Dos Direitos do Consumidor
 - capítulo: Das Práticas Comerciais
@@ -154,7 +156,7 @@ Parágrafo único. Cessadas a produção ou importação, a oferta deverá ser m
 
 ## Lei 8.078/1990, art. 35
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
 - id: `cdc-art-35`
 - título: Dos Direitos do Consumidor
 - capítulo: Das Práticas Comerciais
@@ -168,7 +170,7 @@ III - rescindir o contrato, com direito à restituição de quantia eventualment
 
 ## Lei 8.078/1990, art. 40
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
 - id: `cdc-art-40`
 - título: Dos Direitos do Consumidor
 - capítulo: Das Práticas Comerciais
@@ -182,7 +184,7 @@ Art. 40. O fornecedor de serviço será obrigado a entregar ao consumidor orçam
 
 ## Lei 8.078/1990, art. 45
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
 - id: `cdc-art-45`
 - título: Dos Direitos do Consumidor
 - capítulo: Das Práticas Comerciais
@@ -193,7 +195,7 @@ Art. 45. (Vetado) .
 
 ## Lei 8.078/1990, art. 54-F
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/leis/l8078compilado.htm)
 - id: `cdc-art-54-F`
 - título: Dos Direitos do Consumidor
 - capítulo: DA PREVENÇÃO E DO TRATAMENTO DO SUPERENDIVIDAMENTO
@@ -212,7 +214,7 @@ II - contra o administrador ou o emitente de cartão de crédito ou similar quan
 
 ## Lei 14.133/2021, art. 7
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
 - id: `licitacoes-art-7`
 - título: DISPOSIÇÕES PRELIMINARES
 - capítulo: DOS AGENTES PÚBLICOS
@@ -228,7 +230,7 @@ III - não sejam cônjuge ou companheiro de licitantes ou contratados habituais 
 
 ## Lei 14.133/2021, art. 69
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
 - id: `licitacoes-art-69`
 - título: DAS LICITAÇÕES
 - capítulo: DA HABILITAÇÃO
@@ -247,7 +249,7 @@ II - certidão negativa de feitos sobre falência expedida pelo distribuidor da 
 
 ## Lei 14.133/2021, art. 92
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
 - id: `licitacoes-art-92`
 - título: DOS CONTRATOS ADMINISTRATIVOS
 - capítulo: DA FORMALIZAÇÃO DOS CONTRATOS
@@ -289,7 +291,7 @@ II - repactuação, quando houver regime de dedicação exclusiva de mão de obr
 
 ## Lei 14.133/2021, art. 117
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
 - id: `licitacoes-art-117`
 - título: DOS CONTRATOS ADMINISTRATIVOS
 - capítulo: DA EXECUÇÃO DOS CONTRATOS
@@ -306,7 +308,7 @@ II - a contratação de terceiros não eximirá de responsabilidade o fiscal do 
 
 ## Lei 14.133/2021, art. 136
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
 - id: `licitacoes-art-136`
 - título: DOS CONTRATOS ADMINISTRATIVOS
 - capítulo: DA ALTERAÇÃO DOS CONTRATOS E DOS PREÇOS
@@ -321,7 +323,7 @@ IV - empenho de dotações orçamentárias.
 
 ## Lei 14.133/2021, art. 167
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
 - id: `licitacoes-art-167`
 - título: DAS IRREGULARIDADES
 - capítulo: DAS IMPUGNAÇÕES, DOS PEDIDOS DE ESCLARECIMENTO E DOS RECURSOS
@@ -332,7 +334,7 @@ Art. 167. Da aplicação da sanção prevista no inciso IV do caput do art. 156 
 
 ## Lei 14.133/2021, art. 169
 
-- [ ] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
+- [x] Conferido contra [o original](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm)
 - id: `licitacoes-art-169`
 - título: DAS IRREGULARIDADES
 - capítulo: DO CONTROLE DAS CONTRATAÇÕES

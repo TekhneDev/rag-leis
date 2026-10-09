@@ -11,7 +11,7 @@ Em construção. O corpus (406 artigos das três leis) e o conjunto ouro (75 per
 | Fase | Entregável | Situação |
 | --- | --- | --- |
 | 0. Ambiente | Repositório com estrutura de pastas, lint e teste | Concluída |
-| 1. Corpus | `corpus.jsonl`, um registro por artigo | Gerado; falta a conferência manual de 20 artigos |
+| 1. Corpus | `corpus.jsonl`, um registro por artigo | Concluída |
 | 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | Redigido; falta a validação manual das perguntas |
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | A fazer |
 | 4. Avaliação | `evaluate.py` e números do baseline | A fazer |
@@ -38,7 +38,7 @@ Para gerar o corpus de novo (baixa as páginas para `data/raw/` se ainda não es
 python -m rag_leis.chunk
 ```
 
-A amostra para conferência manual está em `results/conferencia_fase1.md`.
+Uma amostra de 20 artigos sorteados foi conferida à mão contra o original; o registro está em `results/conferencia_fase1.md`.
 
 ## Conjunto ouro
 

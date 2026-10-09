@@ -4,6 +4,25 @@ As 75 perguntas de `data/gold/gold.jsonl` foram redigidas por um LLM (Claude) a 
 
 Para cada pergunta: abra o artigo indicado no `corpus.jsonl`, confira se a resposta esperada está apoiada no texto e se o artigo é mesmo o melhor para respondê-la. Marque a caixa, ou corrija a linha no `gold.jsonl`.
 
+## Revisão por LLM (9 de outubro de 2026)
+
+Segunda leitura feita pelo mesmo modelo que redigiu as perguntas (Claude). Não conta como validação humana e por isso as caixas abaixo continuam desmarcadas.
+
+O que foi conferido:
+
+- As 66 respostas com artigo esperado foram relidas contra o texto do artigo no corpus. Nenhum erro de fato encontrado.
+- Prazos, percentuais e valores de cada resposta foram procurados no texto do artigo esperado. Todos aparecem (no CDC, por extenso: "trinta dias", "noventa dias", "cinco anos").
+- Os temas das 9 perguntas fora do escopo foram procurados no corpus. Nenhum tem resposta lá.
+
+Pontos para você decidir:
+
+- **q031** (revogar consentimento): o artigo esperado é o `lgpd-art-8`, que traz a regra. Os arts. 15 e 18 da LGPD também citam a revogação, remetendo ao art. 8º. Se a busca trouxer só o 18, a métrica conta erro.
+- **q045** (empresa punida): o esperado é o `licitacoes-art-14`. O `licitacoes-art-156` descreve a sanção de impedimento e também ajudaria a responder.
+- **q067** (inversão do ônus da prova): o esperado é o `cdc-art-6`. O termo aparece também no `cdc-art-51`, como cláusula proibida.
+- **q034** (com quem falar na empresa): o esperado é o `lgpd-art-41`. O `lgpd-art-5` traz a definição de encarregado.
+- **q075** (Marco Civil): o `lgpd-art-60` cita o Marco Civil da Internet, mas não diz por quanto tempo os provedores guardam registros. Continua fora do escopo e é a mais difícil das nove, porque a busca vai trazer esse artigo.
+- **q043 e q061** (dispensa por valor): as respostas usam R$ 50.000,00 e R$ 100.000,00, que são os valores do texto da lei. A atualização desses valores por decreto não está no corpus.
+
 ## Direta
 
 - [ ] **q001** (dev) Qual é o objetivo da Lei Geral de Proteção de Dados Pessoais?

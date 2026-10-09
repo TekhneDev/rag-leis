@@ -30,30 +30,32 @@ def montar_prompt(pergunta: str, artigos: list[dict]) -> str:
     return "Trechos:\n\n" + "\n\n".join(trechos) + f"\n\nPergunta: {pergunta}"
 
 
-def generate(pergunta: str, artigos: list[dict]) -> str:
-    """Responde à pergunta com base nos artigos, ou diz que não encontrou."""
+def conversar(
+    sistema: str, usuario: str, modelo: str = MODELO_LLM, json: bool = False
+) -> str:
+    """Envia uma conversa ao Ollama e devolve o texto da resposta."""
+    corpo = {
+        "model": modelo,
+        "messages": [
+            {"role": "system", "content": sistema},
+            {"role": "user", "content": usuario},
+        ],
+        "stream": False,
+        # Temperatura zero e semente fixa para a mesma entrada dar a mesma saída.
+        "options": {"temperature": 0, "seed": 42, "num_ctx": JANELA_DE_CONTEXTO},
+    }
+    if json:
+        corpo["format"] = "json"
     try:
-        resposta = requests.post(
-            f"{OLLAMA_URL}/api/chat",
-            json={
-                "model": MODELO_LLM,
-                "messages": [
-                    {"role": "system", "content": INSTRUCOES},
-                    {"role": "user", "content": montar_prompt(pergunta, artigos)},
-                ],
-                "stream": False,
-                # Temperatura zero e semente fixa para a mesma pergunta dar a mesma resposta.
-                "options": {
-                    "temperature": 0,
-                    "seed": 42,
-                    "num_ctx": JANELA_DE_CONTEXTO,
-                },
-            },
-            timeout=1800,
-        )
+        resposta = requests.post(f"{OLLAMA_URL}/api/chat", json=corpo, timeout=1800)
     except requests.ConnectionError as erro:
         raise RuntimeError(
             f"Ollama não respondeu em {OLLAMA_URL}. Inicie com: ollama serve"
         ) from erro
     resposta.raise_for_status()
     return resposta.json()["message"]["content"].strip()
+
+
+def generate(pergunta: str, artigos: list[dict]) -> str:
+    """Responde à pergunta com base nos artigos, ou diz que não encontrou."""
+    return conversar(INSTRUCOES, montar_prompt(pergunta, artigos))

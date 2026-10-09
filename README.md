@@ -6,14 +6,14 @@ Sistema de perguntas e respostas (RAG) sobre três leis brasileiras, com uma tab
 
 ## Status
 
-Em construção. O corpus (406 artigos das três leis) e o conjunto ouro (75 perguntas) estão gerados; ainda não há busca nem geração.
+Em construção. O sistema já responde perguntas de ponta a ponta com busca densa e um LLM local; ainda não há métricas.
 
 | Fase | Entregável | Situação |
 | --- | --- | --- |
 | 0. Ambiente | Repositório com estrutura de pastas, lint e teste | Concluída |
 | 1. Corpus | `corpus.jsonl`, um registro por artigo | Concluída |
 | 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | Redigido; falta a validação manual das perguntas |
-| 3. Baseline | Pipeline de ponta a ponta com busca densa | A fazer |
+| 3. Baseline | Pipeline de ponta a ponta com busca densa | Pipeline pronto; rodada do conjunto ouro em andamento |
 | 4. Avaliação | `evaluate.py` e números do baseline | A fazer |
 | 5. Experimentos | Tabela de resultados e análise de erros | A fazer |
 | 6. Entrega | App e demo | A fazer |
@@ -68,7 +68,15 @@ rag-leis/
   data/raw/          # HTML original das leis (fora do Git)
   data/processed/    # corpus.jsonl
   data/gold/         # gold.jsonl
-  src/rag_leis/      # código do pacote
+  data/index/        # vetores dos artigos (fora do Git, gerado por comando)
+  src/rag_leis/
+    ingest.py        # baixar e limpar
+    chunk.py         # cortar por artigo
+    index.py         # embeddings e índice vetorial
+    retrieve.py      # busca densa
+    generate.py      # prompt e chamada ao LLM
+    responder.py     # uma pergunta de ponta a ponta
+    baseline.py      # conjunto ouro inteiro
   experiments/       # um arquivo de configuração por experimento
   results/           # saídas e tabela final
   tests/
@@ -84,8 +92,11 @@ git clone https://github.com/TekhneDev/rag-leis.git
 cd rag-leis
 python3 -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -e ".[dev]"
 ```
+
+A primeira linha do `pip` instala o PyTorch só para CPU, que é bem menor. Quem tem placa de vídeo com bastante memória pode pular essa linha.
 
 Conferência do ambiente:
 
@@ -95,4 +106,45 @@ black --check .
 pytest
 ```
 
-Chaves de API, quando forem necessárias, ficam num arquivo `.env`, que está no `.gitignore`.
+## Baseline
+
+O baseline é a versão mais simples que funciona, para servir de piso de comparação:
+
+| Peça | Escolha |
+| --- | --- |
+| Chunking | Um chunk por artigo, só o texto do artigo |
+| Embedding | `BAAI/bge-m3`, em CPU |
+| Banco vetorial | FAISS, busca exata por cosseno |
+| Recuperação | Densa, 5 artigos por pergunta |
+| Geração | `gemma3:4b` rodando localmente no Ollama, temperatura zero |
+
+O LLM é local e gratuito. Instale o [Ollama](https://ollama.com/download), deixe o servidor no ar e baixe o modelo (3,4 GB):
+
+```bash
+ollama serve            # em um terminal separado, se o servidor ainda não estiver no ar
+ollama pull gemma3:4b
+```
+
+Gere o índice uma vez (baixa o modelo de embedding, cerca de 2 GB, e leva alguns minutos em CPU):
+
+```bash
+python -m rag_leis.index
+```
+
+Faça uma pergunta:
+
+```bash
+python -m rag_leis.responder "O que é cláusula abusiva em contrato de consumo?"
+```
+
+A saída mostra os 5 artigos recuperados, com a pontuação de similaridade, e a resposta com a lei e o artigo citados. Em CPU, cada resposta leva de um a dois minutos.
+
+Rode o conjunto ouro inteiro e salve as saídas em `results/baseline/saidas.jsonl`:
+
+```bash
+python -m rag_leis.baseline
+```
+
+O comando pode ser interrompido e retomado: ele pula as perguntas que já têm saída.
+
+Para usar outro modelo do Ollama, defina a variável `RAG_LEIS_LLM` antes de rodar. O projeto não usa chave de API; se um dia usar, ela fica num arquivo `.env`, que está no `.gitignore`.

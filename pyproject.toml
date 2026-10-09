@@ -2,7 +2,14 @@
 name = "rag-leis"
 version = "0.1.0"
 requires-python = ">=3.10"
-dependencies = ["requests", "beautifulsoup4", "lxml"]
+dependencies = [
+    "requests",
+    "beautifulsoup4",
+    "lxml",
+    "numpy",
+    "faiss-cpu",
+    "sentence-transformers",
+]
 
 [project.optional-dependencies]
 dev = ["ruff", "black", "pytest"]

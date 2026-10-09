@@ -18,10 +18,10 @@ Pontos para você decidir:
 
 - **q031** (revogar consentimento): o artigo esperado é o `lgpd-art-8`, que traz a regra. Os arts. 15 e 18 da LGPD também citam a revogação, remetendo ao art. 8º. Se a busca trouxer só o 18, a métrica conta erro.
 - **q045** (empresa punida): o esperado é o `licitacoes-art-14`. O `licitacoes-art-156` descreve a sanção de impedimento e também ajudaria a responder.
-- **q067** (inversão do ônus da prova): o esperado é o `cdc-art-6`. O termo aparece também no `cdc-art-51`, como cláusula proibida.
+- **q063** (inversão do ônus da prova): o esperado é o `cdc-art-6`. O termo aparece também no `cdc-art-51`, como cláusula proibida.
 - **q034** (com quem falar na empresa): o esperado é o `lgpd-art-41`. O `lgpd-art-5` traz a definição de encarregado.
 - **q075** (Marco Civil): o `lgpd-art-60` cita o Marco Civil da Internet, mas não diz por quanto tempo os provedores guardam registros. Continua fora do escopo e é a mais difícil das nove, porque a busca vai trazer esse artigo.
-- **q043 e q061** (dispensa por valor): as respostas usam R$ 50.000,00 e R$ 100.000,00, que são os valores do texto da lei. A atualização desses valores por decreto não está no corpus.
+- **q043 e q057** (dispensa por valor): as respostas usam R$ 50.000,00 e R$ 100.000,00, que são os valores do texto da lei. A atualização desses valores por decreto não está no corpus.
 
 ## Direta
 

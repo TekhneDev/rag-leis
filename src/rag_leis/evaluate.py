@@ -134,12 +134,20 @@ def resumir(linhas: list[dict]) -> dict:
     return resumo
 
 
+def arquivo_do_juiz(pasta: Path, nome: str) -> Path:
+    """Cada juiz grava nos seus arquivos, para que trocar de juiz não misture vereditos."""
+    base, extensao = nome.rsplit(".", 1)
+    return pasta / f"{base}_{MODELO_JUIZ.replace(':', '-')}.{extensao}"
+
+
 def _trechos(saida: dict, artigos: dict[str, dict]) -> str:
     return montar_prompt(saida["pergunta"], [artigos[i] for i in saida["recuperados"]])
 
 
 def _perguntar_ao_juiz(instrucoes: str, conteudo: str, campo: str) -> dict:
-    bruto = conversar(instrucoes, conteudo, modelo=MODELO_JUIZ, json=True)
+    bruto = conversar(
+        instrucoes, conteudo, modelo=MODELO_JUIZ, json=True, descarregar=True
+    )
     try:
         return {campo: bool(json.loads(bruto)[campo]), f"justificativa_{campo}": bruto}
     except (json.JSONDecodeError, KeyError):
@@ -234,7 +242,9 @@ def gerar_amostra_para_rotular(
 
 def concordancia(pasta: Path) -> dict:
     """Fração das respostas em que o juiz deu o mesmo rótulo que você."""
-    julgamentos = {item["id"]: item for item in _ler(pasta / "julgamentos.jsonl")}
+    julgamentos = {
+        item["id"]: item for item in _ler(arquivo_do_juiz(pasta, "julgamentos.jsonl"))
+    }
     valor = {"sim": True, "nao": False, "não": False}
     resultado = {}
     with (pasta / "rotulos.csv").open(encoding="utf-8", newline="") as arquivo:
@@ -346,7 +356,7 @@ def main() -> None:
 
     if opcoes.sondar:
         resultados = sondar_juiz()
-        destino = opcoes.pasta / "sonda_juiz.json"
+        destino = arquivo_do_juiz(opcoes.pasta, "sonda_juiz.json")
         destino.write_text(
             json.dumps(resultados, ensure_ascii=False, indent=2), encoding="utf-8"
         )
@@ -367,7 +377,7 @@ def main() -> None:
         return
 
     gold = [item for item in todas if item["split"] == opcoes.split]
-    arquivo_julgamentos = opcoes.pasta / "julgamentos.jsonl"
+    arquivo_julgamentos = arquivo_do_juiz(opcoes.pasta, "julgamentos.jsonl")
     if opcoes.juiz:
         julgamentos = julgar(gold, saidas, arquivo_julgamentos)
     elif arquivo_julgamentos.exists():

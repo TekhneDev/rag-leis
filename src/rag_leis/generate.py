@@ -31,7 +31,11 @@ def montar_prompt(pergunta: str, artigos: list[dict]) -> str:
 
 
 def conversar(
-    sistema: str, usuario: str, modelo: str = MODELO_LLM, json: bool = False
+    sistema: str,
+    usuario: str,
+    modelo: str = MODELO_LLM,
+    json: bool = False,
+    descarregar: bool = False,
 ) -> str:
     """Envia uma conversa ao Ollama e devolve o texto da resposta."""
     corpo = {
@@ -46,6 +50,10 @@ def conversar(
     }
     if json:
         corpo["format"] = "json"
+    if descarregar:
+        # O servidor guarda cerca de 1 GB por conversa anterior; com um modelo grande
+        # isso enche a memória em poucas perguntas. Descarregar a cada chamada evita.
+        corpo["keep_alive"] = 0
     try:
         resposta = requests.post(f"{OLLAMA_URL}/api/chat", json=corpo, timeout=1800)
     except requests.ConnectionError as erro:

@@ -1,0 +1,38 @@
+[
+  {
+    "caso": "apoiada nos trechos",
+    "resposta": "São nulas de pleno direito as cláusulas que transfiram responsabilidades a terceiros (Lei 8.078/1990, art. 51, III).",
+    "fiel_esperado": true,
+    "fiel_juiz": true,
+    "juiz_acertou": true,
+    "justificativa": "{\"justificativa\": \"A resposta cita corretamente o artigo 51, III da Lei 8.078/1990, que define cláusulas abusivas como aquelas que transferem responsabilidades a terceiros. Portanto, a afirmação está apoiada no trecho de lei fornecido.\", \"fiel\": true}",
+    "juiz": "gemma3:12b"
+  },
+  {
+    "caso": "prazo inventado",
+    "resposta": "São nulas as cláusulas abusivas, e o consumidor tem 45 dias para pedir a anulação ao Procon (Lei 8.078/1990, art. 51).",
+    "fiel_esperado": false,
+    "fiel_juiz": false,
+    "juiz_acertou": true,
+    "justificativa": "{\"justificativa\": \"A resposta menciona a Lei 8.078/1990, art. 51, que trata de cláusulas contratuais nulas, o que está de acordo com os trechos fornecidos. No entanto, a resposta afirma que as cláusulas abusivas são nulas, o que não é explicitamente declarado no art. 51. O art. 51 trata de cláusulas 'nulas de pleno direito', enquanto o art. 54, § 2º, menciona a possibilidade de cláusulas abusivas, mas não as declara automaticamente nulas. A resposta também menciona um prazo de 45 dias para anulação ao Procon, o que não é encontrado nos trechos fornecidos.\", \"fiel\": false}",
+    "juiz": "gemma3:12b"
+  },
+  {
+    "caso": "contradiz o trecho",
+    "resposta": "As cláusulas que exonerem a responsabilidade do fornecedor por vícios são válidas e plenamente eficazes (Lei 8.078/1990, art. 51).",
+    "fiel_esperado": false,
+    "fiel_juiz": false,
+    "juiz_acertou": true,
+    "justificativa": "{\"justificativa\": \"A resposta afirma que cláusulas que exoneram a responsabilidade do fornecedor por vícios são válidas e eficazes, enquanto o Art. 51 da Lei 8.078/1990 declara essas cláusulas nulas de pleno direito. Portanto, a resposta contradiz o trecho de lei.\", \"fiel\": false}",
+    "juiz": "gemma3:12b"
+  },
+  {
+    "caso": "verdadeira, mas de artigo que não foi recuperado",
+    "resposta": "O consumidor pode desistir da compra em 7 dias quando ela é feita fora do estabelecimento comercial (Lei 8.078/1990, art. 49).",
+    "fiel_esperado": false,
+    "fiel_juiz": false,
+    "juiz_acertou": true,
+    "justificativa": "{\"justificativa\": \"A resposta menciona o artigo 49 da Lei 8.078/1990, que trata do direito de arrependimento em compras fora do estabelecimento comercial, mas não define o que é uma cláusula abusiva. A pergunta solicitava a definição de cláusula abusiva, e a resposta não a fornece, apenas menciona um direito do consumidor em um contexto diferente.\", \"fiel\": false}",
+    "juiz": "gemma3:12b"
+  }
+]

@@ -6,7 +6,7 @@ Sistema de perguntas e respostas (RAG) sobre três leis brasileiras, com uma tab
 
 ## Status
 
-Em construção. O sistema responde perguntas de ponta a ponta com busca densa e um LLM local, e o baseline já tem métricas de busca. As métricas de geração ainda não são confiáveis, porque o juiz não passou na validação.
+Em construção. O sistema responde perguntas de ponta a ponta com busca densa e um LLM local, e o baseline já tem métricas de busca. As métricas de geração ainda não são confiáveis: o juiz atual passou numa sonda de 4 casos, mas falta compará-lo com rótulos humanos.
 
 | Fase | Entregável | Situação |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Em construção. O sistema responde perguntas de ponta a ponta com busca densa e
 | 1. Corpus | `corpus.jsonl`, um registro por artigo | Concluída |
 | 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | Redigido; falta a validação manual das perguntas |
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | Concluída |
-| 4. Avaliação | `evaluate.py` e números do baseline | Métricas prontas; o juiz de fidelidade falhou na sonda e falta a rotulagem humana |
+| 4. Avaliação | `evaluate.py` e números do baseline | Métricas prontas; o juiz `gemma3:12b` passou na sonda e falta a rotulagem humana |
 | 5. Experimentos | Tabela de resultados e análise de erros | A fazer |
 | 6. Entrega | App e demo | A fazer |
 
@@ -81,13 +81,15 @@ Essas métricas são código puro, sem LLM: comparam os ids recuperados com `art
 
 - Abstenção correta: nas 5 perguntas fora do escopo, o sistema respondeu "Não encontrei na base." em todas.
 - Abstenção indevida: em 8 das 34 perguntas com resposta no corpus o sistema também disse que não encontrou, 6 delas de linguagem leiga. Na maioria o artigo certo estava entre os trechos recuperados.
-- Correção, segundo o juiz LLM: 0,65 [0,47 a 0,79]. Ainda não validada contra rótulos humanos.
-- Fidelidade, segundo o juiz LLM: 1,00 em 26 respostas. **Esse número não vale.** Numa sonda com três respostas falsas de propósito, o juiz (`gemma3:4b`, o mesmo modelo que gera as respostas) aprovou duas: uma com prazo inventado e uma que contradiz o artigo. O resultado está em `results/baseline/sonda_juiz.json`.
+- Correção, segundo o juiz `gemma3:12b`: 0,74 [0,59 a 0,88], em 34 respostas. Ainda não validada contra rótulos humanos.
+- Fidelidade, segundo o juiz `gemma3:12b`: 1,00 em 26 respostas. Ainda não validada contra rótulos humanos.
+- O primeiro juiz foi o `gemma3:4b`, o mesmo modelo que gera as respostas, e seus números foram descartados. Numa sonda com três respostas falsas de propósito, ele aprovou duas: uma com prazo inventado e uma que contradiz o artigo. O `gemma3:12b` acertou os quatro casos da mesma sonda. Quatro casos são um indício, não uma validação. Os resultados estão em `results/baseline/sonda_juiz_gemma3-4b.json` e `results/baseline/sonda_juiz_gemma3-12b.json`.
 
 Para reproduzir:
 
 ```bash
 python -m rag_leis.evaluate            # busca e abstenção
+export RAG_LEIS_JUIZ=gemma3:12b        # sem isso, o juiz é o mesmo modelo que gera
 python -m rag_leis.evaluate --juiz     # inclui o juiz LLM
 python -m rag_leis.evaluate --sondar   # testa o juiz com respostas falsas
 ```
@@ -157,6 +159,7 @@ O LLM é local e gratuito. Instale o [Ollama](https://ollama.com/download), deix
 ```bash
 ollama serve            # em um terminal separado, se o servidor ainda não estiver no ar
 ollama pull gemma3:4b
+ollama pull gemma3:12b               # juiz da avaliação, 8 GB
 ```
 
 Gere o índice uma vez (baixa o modelo de embedding, cerca de 2 GB, e leva alguns minutos em CPU):

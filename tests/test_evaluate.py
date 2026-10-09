@@ -1,5 +1,6 @@
 import pytest
 
+from rag_leis import evaluate
 from rag_leis.evaluate import (
     absteve,
     acerto_em_k,
@@ -92,3 +93,12 @@ def test_medir_e_resumir_separam_busca_e_abstencao() -> None:
     }
     assert resumo["fora_do_escopo"]["abstencao_correta"]["media"] == 1
     assert resumo["direta"]["fiel"]["n"] == 1
+
+
+def test_cada_juiz_grava_no_seu_arquivo(monkeypatch, tmp_path):
+    monkeypatch.setattr(evaluate, "MODELO_JUIZ", "gemma3:4b")
+    pequeno = evaluate.arquivo_do_juiz(tmp_path, "julgamentos.jsonl")
+    monkeypatch.setattr(evaluate, "MODELO_JUIZ", "gemma3:12b")
+    grande = evaluate.arquivo_do_juiz(tmp_path, "julgamentos.jsonl")
+    assert pequeno.name == "julgamentos_gemma3-4b.jsonl"
+    assert grande.name == "julgamentos_gemma3-12b.jsonl"

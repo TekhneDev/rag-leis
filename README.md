@@ -13,7 +13,7 @@ Em construção. O sistema já responde perguntas de ponta a ponta com busca den
 | 0. Ambiente | Repositório com estrutura de pastas, lint e teste | Concluída |
 | 1. Corpus | `corpus.jsonl`, um registro por artigo | Concluída |
 | 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | Redigido; falta a validação manual das perguntas |
-| 3. Baseline | Pipeline de ponta a ponta com busca densa | Pipeline pronto; rodada do conjunto ouro em andamento |
+| 3. Baseline | Pipeline de ponta a ponta com busca densa | Concluída |
 | 4. Avaliação | `evaluate.py` e números do baseline | A fazer |
 | 5. Experimentos | Tabela de resultados e análise de erros | A fazer |
 | 6. Entrega | App e demo | A fazer |

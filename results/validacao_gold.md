@@ -36,43 +36,52 @@ Pontos que continuam em aberto:
 - **q075** (Marco Civil): o `lgpd-art-60` cita o Marco Civil da Internet, mas não diz por quanto tempo os provedores guardam registros. Continua fora do escopo e é a mais difícil das nove, porque a busca vai trazer esse artigo.
 - **q043 e q057** (dispensa por valor): as respostas usam R$ 50.000,00 e R$ 100.000,00, que são os valores do texto da lei. A atualização desses valores por decreto não está no corpus.
 
+## Lacunas de cobertura anotadas na validação humana
+
+Assuntos que nenhuma pergunta testa, percebidos por Carla durante a conferência. Não são erros das perguntas existentes; ficam aqui para decidir, ao fim da validação, se entram perguntas novas.
+
+- **Conceito dos princípios da LGPD** (art. 6º): a q003 pede só a lista dos princípios, e nenhuma outra pergunta pede o que cada um significa. Ideia de pergunta: "O que a LGPD entende por princípio da necessidade?".
+
 ## Direta
 
-- [ ] **q001** (dev) Qual é o objetivo da Lei Geral de Proteção de Dados Pessoais?
+- [x] **q001** (dev) Qual é o objetivo da Lei Geral de Proteção de Dados Pessoais?
   - Artigos: `lgpd-art-1`
   - Resposta esperada: Proteger os direitos fundamentais de liberdade e de privacidade e o livre desenvolvimento da personalidade da pessoa natural, disciplinando o tratamento de dados pessoais, inclusive nos meios digitais.
 - [ ] **q002** (test) A quais operações de tratamento de dados a LGPD se aplica?
   - Artigos: `lgpd-art-3`
   - Também aceitos: `lgpd-art-4`
   - Resposta esperada: A qualquer operação de tratamento, independentemente do meio, do país da sede ou de onde estejam os dados, desde que a operação seja realizada no território nacional, tenha por objetivo ofertar bens ou serviços ou tratar dados de indivíduos localizados no território nacional, ou os dados tenham sido coletados no território nacional.
-- [ ] **q003** (dev) Quais princípios as atividades de tratamento de dados pessoais devem observar?
+- [x] **q003** (dev) Quais princípios as atividades de tratamento de dados pessoais devem observar?
   - Artigos: `lgpd-art-6`
   - Resposta esperada: A boa-fé e os princípios da finalidade, adequação, necessidade, livre acesso, qualidade dos dados, transparência, segurança, prevenção, não discriminação e responsabilização e prestação de contas.
 - [ ] **q004** (test) Em que hipóteses o tratamento de dados pessoais pode ser realizado?
   - Artigos: `lgpd-art-7`
   - Resposta esperada: Com consentimento do titular; para cumprimento de obrigação legal ou regulatória; pela administração pública para políticas públicas; para estudos por órgão de pesquisa; para execução de contrato; para exercício regular de direitos em processo; para proteção da vida ou da incolumidade física; para tutela da saúde; para atender a interesses legítimos do controlador ou de terceiro; e para proteção do crédito.
-- [ ] **q005** (dev) Como o consentimento do titular deve ser fornecido?
+- [x] **q005** (dev) Como o consentimento do titular deve ser fornecido?
   - Artigos: `lgpd-art-8`
-  - Resposta esperada: Por escrito ou por outro meio que demonstre a manifestação de vontade do titular. Se for por escrito, deve constar de cláusula destacada das demais, e cabe ao controlador provar que o consentimento foi obtido conforme a lei.
+  - Resposta esperada: Por escrito ou por outro meio que demonstre a manifestação de vontade do titular. Se for por escrito, deve constar de cláusula destacada das demais, e cabe ao controlador provar que o consentimento foi obtido conforme a lei. O consentimento deve referir-se a finalidades determinadas; autorizações genéricas são nulas.
+  - Corrigido: acrescentado o § 4º (finalidades determinadas; autorização genérica é nula), por decisão de Carla na validação.
 - [ ] **q006** (test) Quais direitos o titular dos dados pode obter do controlador mediante requisição?
   - Artigos: `lgpd-art-18`
   - Resposta esperada: Confirmação da existência de tratamento; acesso aos dados; correção de dados incompletos, inexatos ou desatualizados; anonimização, bloqueio ou eliminação de dados desnecessários ou excessivos; portabilidade; eliminação dos dados tratados com consentimento; informação sobre com quem os dados foram compartilhados; informação sobre a possibilidade de não consentir; e revogação do consentimento.
-- [ ] **q007** (dev) Quem responde pelos danos causados pelo tratamento de dados pessoais em violação à lei?
+- [x] **q007** (dev) Quem responde pelos danos causados pelo tratamento de dados pessoais em violação à lei?
   - Artigos: `lgpd-art-42`
   - Também aceitos: `lgpd-art-43`, `lgpd-art-44`
   - Resposta esperada: O controlador ou o operador que causar dano patrimonial, moral, individual ou coletivo é obrigado a repará-lo. O operador responde solidariamente quando descumpre a legislação ou não segue as instruções lícitas do controlador, e os controladores diretamente envolvidos respondem solidariamente.
 - [ ] **q008** (test) Em que casos a transferência internacional de dados pessoais é permitida?
   - Artigos: `lgpd-art-33`
   - Resposta esperada: Entre outros casos, para países ou organismos internacionais com grau de proteção adequado; quando o controlador comprovar garantias como cláusulas contratuais específicas, cláusulas-padrão contratuais, normas corporativas globais ou selos e certificados; e quando necessária para cooperação jurídica internacional.
-- [ ] **q009** (dev) Quais sanções administrativas podem ser aplicadas a quem descumpre a LGPD?
+- [x] **q009** (dev) Quais sanções administrativas podem ser aplicadas a quem descumpre a LGPD?
   - Artigos: `lgpd-art-52`
-  - Resposta esperada: Advertência; multa simples de até 2% do faturamento, limitada a R$ 50 milhões por infração; multa diária; publicização da infração; bloqueio e eliminação dos dados; suspensão parcial do banco de dados ou da atividade de tratamento por até 6 meses, prorrogável; e proibição parcial ou total das atividades de tratamento.
+  - Resposta esperada: Advertência; multa simples de até 2% do faturamento, limitada a R$ 50 milhões por infração; multa diária; publicização da infração; bloqueio dos dados pessoais a que se refere a infração; eliminação dos dados pessoais a que se refere a infração; suspensão parcial do funcionamento do banco de dados por até 6 meses, prorrogável por igual período; suspensão do exercício da atividade de tratamento por até 6 meses, prorrogável por igual período; e proibição parcial ou total do exercício de atividades relacionadas a tratamento de dados.
+  - Corrigido: cada sanção em item próprio (bloqueio e eliminação separados; as duas suspensões separadas), por decisão de Carla na validação.
 - [ ] **q010** (test) Quem a lei considera consumidor?
   - Artigos: `cdc-art-2`
   - Resposta esperada: Toda pessoa física ou jurídica que adquire ou utiliza produto ou serviço como destinatário final. Equipara-se a consumidor a coletividade de pessoas, ainda que indetermináveis, que haja intervindo nas relações de consumo.
-- [ ] **q011** (dev) Quem a lei considera fornecedor?
+- [x] **q011** (dev) Quem o Código de Defesa do Consumidor considera fornecedor?
   - Artigos: `cdc-art-3`
   - Resposta esperada: Toda pessoa física ou jurídica, pública ou privada, nacional ou estrangeira, e os entes despersonalizados, que desenvolvem atividade de produção, montagem, criação, construção, transformação, importação, exportação, distribuição ou comercialização de produtos ou prestação de serviços.
+  - Corrigido: a pergunta dizia "a lei" sem dizer qual; passou a citar o Código de Defesa do Consumidor, por decisão de Carla na validação. Exige refazer a saída do baseline e o julgamento.
 - [ ] **q012** (test) Em quanto tempo caduca o direito de reclamar de vícios aparentes de produtos e serviços?
   - Artigos: `cdc-art-26`
   - Resposta esperada: Em 30 dias para serviços e produtos não duráveis e em 90 dias para serviços e produtos duráveis, contados da entrega efetiva do produto ou do término da execução do serviço. No vício oculto, o prazo começa quando o defeito fica evidenciado.

@@ -1,5 +1,7 @@
 # rag-leis
 
+[![CI](https://github.com/TekhneDev/rag-leis/actions/workflows/ci.yml/badge.svg)](https://github.com/TekhneDev/rag-leis/actions/workflows/ci.yml)
+
 Sistema de perguntas e respostas (RAG) sobre três leis brasileiras, com uma tabela de experimentos que mede o que faz o sistema acertar mais.
 
 > Este projeto é um estudo e não substitui orientação jurídica.
@@ -15,10 +17,10 @@ Em construção. O sistema responde perguntas de ponta a ponta com busca densa e
 | 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | Redigido; falta a validação manual das perguntas |
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | Concluída |
 | 4. Avaliação | `evaluate.py` e números do baseline | Métricas prontas; o juiz `gemma3:12b` passou na sonda e falta a rotulagem humana |
-| 5. Experimentos | Tabela de resultados e análise de erros | A fazer |
+| 5. Experimentos | Tabela de resultados e análise de erros | Iniciada: densa, BM25 e híbrida medidas no `dev` |
 | 6. Entrega | App e demo | A fazer |
 
-O plano completo, com conceitos, métricas e armadilhas, está em [Roadmap RAG jurídico com avaliação](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md). O que foi feito em cada fase, passo a passo, com os problemas encontrados, está no [diário do projeto](DIARIO.md).
+O plano completo, com conceitos, métricas e armadilhas, está em [Roadmap RAG jurídico com avaliação](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md). O que foi feito em cada fase, passo a passo, com os problemas encontrados, está no [diário do projeto](DIARIO.md). Os próximos passos, ligados ao que o mercado de trabalho pede, estão no [plano](PLANO.md).
 
 ## Corpus
 
@@ -96,6 +98,24 @@ python -m rag_leis.evaluate --sondar   # testa o juiz com respostas falsas
 
 A validação humana do juiz usa `results/baseline/rotular.md` (30 respostas para ler) e `results/baseline/rotulos.csv` (para preencher), e é conferida com `python -m rag_leis.evaluate --concordancia`.
 
+## Experimentos
+
+Cada experimento é um arquivo em `experiments/` que muda uma peça em relação ao baseline. Por enquanto só a busca varia, e só as métricas de busca são medidas, porque elas não dependem do juiz.
+
+```bash
+python -m rag_leis.experimento experiments/*.json   # roda no dev e refaz a tabela
+```
+
+Resultados em `results/experimentos/tabela.md`. Primeira rodada, no `dev`:
+
+| Busca | Recall@5 | MRR | Recall@5 em termo exato | Recall@5 em leiga |
+| --- | --- | --- | --- | --- |
+| Densa (baseline) | 0,85 | 0,76 | 0,60 | 0,80 |
+| BM25 | 0,50 | 0,35 | 0,60 | 0,00 |
+| Híbrida (RRF, pesos iguais) | 0,56 | 0,45 | 0,40 | 0,20 |
+
+A busca híbrida piorou em vez de melhorar, inclusive nas perguntas de termo exato. A análise e as próximas hipóteses estão no [plano](PLANO.md#etapa-2-o-que-a-primeira-rodada-mostrou).
+
 ## Estrutura
 
 ```text
@@ -108,11 +128,12 @@ rag-leis/
     ingest.py        # baixar e limpar
     chunk.py         # cortar por artigo
     index.py         # embeddings e índice vetorial
-    retrieve.py      # busca densa
+    retrieve.py      # busca densa, BM25 e fusão RRF
     generate.py      # prompt e chamada ao LLM
     responder.py     # uma pergunta de ponta a ponta
     baseline.py      # conjunto ouro inteiro
     evaluate.py      # métricas
+    experimento.py   # roda um experimento de busca a partir da configuração
   experiments/       # um arquivo de configuração por experimento
   results/           # saídas e tabela final
   tests/

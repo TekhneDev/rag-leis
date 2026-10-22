@@ -1,0 +1,62 @@
+# Plano de carreira e de implementação
+
+Oct 22, 2026 · @Carla Braga
+
+Este plano junta duas coisas: o que falta construir no rag-leis e o que cada etapa mostra para quem contrata. O cargo-alvo é cientista de dados com foco em NLP e LLM; o segundo caminho é AI Engineer. O ritmo segue o do [roadmap](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md), 5 a 6 horas por semana.
+
+A apresentação visual do projeto, com a demo e a parte de carreira, está em https://claude.ai/artifact/Xo7NBBVKz94tU4ZDxnU57G (privada até ser compartilhada).
+
+As recomendações de mercado vêm do conhecimento do Claude até meados de 2026, e não de uma pesquisa de vagas. Antes da etapa 3, conte as ferramentas que se repetem em 15 a 20 vagas reais do cargo-alvo e ajuste a ordem.
+
+## Princípio
+
+Cada ferramenta nova entra no rag-leis como experimento medido, e não como curso concluído. Em entrevista, "testei busca híbrida e ela piorou o recall de 0,85 para 0,56; descobri o porquê" vale mais que "sei usar BM25".
+
+## Etapas
+
+| Etapa | Semanas | O que entra | Entregável | Pronto quando | Situação |
+| --- | --- | --- | --- | --- | --- |
+| 1. Base de engenharia | 1 | GitHub Actions (ruff, black, pytest) | `.github/workflows/ci.yml` e selo no README | O CI passa no GitHub | Feito; falta ver o primeiro run verde |
+| 2. Busca por palavra | 1 | BM25, híbrida com RRF, executor de experimentos | `experiments/*.json`, `results/experimentos/tabela.md` | Cada linha da tabela sai de um comando | Feito |
+| 3. Pendências humanas | 1 a 2 | Validar o gabarito e rotular 30 respostas | `validacao_gold.md` marcado, `rotulos.csv` preenchido | Concordância do juiz de pelo menos 80% | A fazer (só Carla pode fazer) |
+| 4. Melhorar a busca | 2 | Busca por referência ("art. N da Lei X"), híbrida com peso, reranker | Novas linhas na tabela | Hipóteses abaixo testadas | A fazer |
+| 5. Melhorar a geração | 1 | Prompt menos rígido e variação de k | Respostas novas julgadas pelo juiz validado | Abstenção indevida medida antes e depois | A fazer; depende da etapa 3 |
+| 6. Ferramentas de avaliação | 1 | Ragas ao lado do juiz próprio; MLflow para os experimentos | Comparação de concordância; runs no MLflow | As duas réguas comparadas com os rótulos humanos | A fazer |
+| 7. Entrega | 1 a 2 | App em Streamlit, README na ordem do roadmap, texto de divulgação | Demo pública | Alguém de fora roda seguindo só o README | A fazer |
+| 8. Produção | 2 a 3 | FastAPI, Docker, API comercial (Claude) contra o modelo local, Langfuse | Endpoint `/perguntar` em container | Custo e latência por pergunta medidos | Depois da entrega |
+| 9. Diferenciais | contínuo | pgvector ou Qdrant, agente com uso de ferramentas, nuvem, editais do PNCP | Um item por vez | Cada um com número na tabela | Depois |
+
+Fora do projeto, em paralelo: SQL com um conjunto de dados tabular (uma tarde por semana), e um texto curto no LinkedIn a cada etapa com um número que surpreendeu.
+
+## Etapa 2: o que a primeira rodada mostrou
+
+Split `dev`, 34 perguntas com artigo esperado. A busca densa reproduz exatamente os números do baseline, o que confirma que o executor de experimentos mede igual ao `evaluate.py`.
+
+| Busca | Recall@5 | MRR | Recall@5 em termo exato | Recall@5 em leiga |
+| --- | --- | --- | --- | --- |
+| Densa (baseline) | 0,85 | 0,76 | 0,60 | 0,80 |
+| BM25 | 0,50 | 0,35 | 0,60 | 0,00 |
+| Híbrida (RRF, pesos iguais) | 0,56 | 0,45 | 0,40 | 0,20 |
+
+A hipótese do roadmap ("a híbrida ganha nas perguntas de termo exato sem perder nas leigas") foi contrariada: a híbrida perdeu nas duas. Os motivos, olhando as perguntas uma a uma:
+
+- **O nome da lei não está no texto do artigo.** O chunk guarda só o texto, então "Lei 14.133" na pergunta não ajuda o BM25 a separar o art. 75 da Lei 14.133 do art. 75 do CDC.
+- **O número do artigo não basta para o BM25.** "Art. 75" aparece em outros 4 artigos que o citam, e o próprio art. 75 é longo; o BM25 penaliza texto longo e o deixou em 130º lugar.
+- **O RRF premia consenso.** Na q057 a densa pôs o art. 75 em 1º, mas ele não estava entre os 50 do BM25; artigos medianos nas duas listas passaram à frente dele.
+- **Pergunta leiga não tem palavras da lei.** O BM25 zera nas leigas, e com peso igual na fusão puxa a híbrida para baixo.
+
+Hipóteses para a etapa 4, cada uma um experimento separado:
+
+1. **Busca por referência.** Quando a pergunta cita "art. N" e uma lei, buscar o artigo direto pelo id e completar com a densa. Hipótese: termo exato sobe para perto de 1,00 sem mexer nas outras.
+2. **Híbrida com peso.** Dar à densa peso maior na fusão. Hipótese: recupera a densa nas leigas e ganha alguns termos exatos.
+3. **Cabeçalho no chunk.** Prefixar lei e número do artigo no texto indexado. Muda o chunking, então entra como experimento à parte.
+4. **Reranker** (`bge-reranker-v2-m3`) sobre os 10 ou 20 primeiros da densa. Hipótese: melhora o MRR mais que o recall.
+
+Com 5 perguntas de termo exato no `dev`, só uma diferença grande conta como sinal.
+
+## Como contar em entrevista
+
+1. Montei um RAG sobre três leis brasileiras, com 406 artigos e um gabarito de 75 perguntas escrito antes de existir qualquer busca, dividido em dev e test.
+2. A busca densa tem recall@5 de 0,85, mas cai para 0,60 nas perguntas de termo exato. Testei busca híbrida esperando ganhar nesse tipo, e ela piorou: o nome da lei não estava no texto indexado e o número do artigo aparecia em remissões.
+3. Descartei meu primeiro juiz LLM porque, numa sonda com respostas falsas de propósito, ele aprovou duas de três.
+4. Em 8 de 34 perguntas o sistema disse que não sabia, embora o artigo certo estivesse nos trechos. Medir busca e geração separadamente mostrou que o problema estava na geração, e não na busca.

@@ -11,7 +11,7 @@ Registro do que foi feito em cada fase, em ordem, com os comandos, as decisões 
 | 2. Conjunto ouro | Redigido e revisado por LLM | Validação humana das 75 perguntas |
 | 3. Baseline | Concluída | Nada |
 | 4. Avaliação | Métricas prontas; juiz `gemma3:12b` passou na sonda | Rotulagem humana de 30 respostas e concordância com o juiz |
-| 5. Experimentos | Não iniciada | Tudo |
+| 5. Experimentos | Iniciada: densa, BM25 e híbrida no `dev` | Busca por referência, híbrida com peso, reranker, geração |
 | 6. Entrega | Não iniciada | Tudo |
 
 Pendências que dependem de uma pessoa:
@@ -319,6 +319,30 @@ Passos:
 Regras: não abrir `julgamentos_*.jsonl` antes de terminar, para não ver a opinião do juiz; usar só `sim`, `nao` ou `-`, porque qualquer outra palavra fica fora da conta; manter o mesmo critério do início ao fim.
 
 Combinado com Carla: a rotulagem pode ser feita na conversa, uma resposta por vez, com o Claude Code mostrando o bloco sem dar opinião e preenchendo o arquivo com a resposta dela.
+
+## Fase 5: experimentos (início, 22 de outubro de 2026)
+
+Objetivo: comparar tipos de busca mudando só a busca e mantendo o resto igual ao baseline.
+
+```bash
+python -m rag_leis.experimento experiments/*.json
+```
+
+### Passos
+
+1. **CI.** `.github/workflows/ci.yml` roda `ruff`, `black --check` e `pytest` a cada push, com PyTorch só para CPU.
+2. **BM25** (`retrieve.py`). Biblioteca `rank-bm25` 0.2.2. O texto é posto em minúsculas, sem acento e sem stopwords; "42-A" vira um termo só. O texto indexado é o mesmo da busca densa, só o do artigo.
+3. **Híbrida** (`retrieve.py`). Cada busca traz 50 artigos e as listas são fundidas por Reciprocal Rank Fusion, com c = 60 e pesos iguais.
+4. **Executor** (`experimento.py`). Lê uma configuração de `experiments/`, roda as perguntas do `dev`, grava métricas e ids recuperados em `results/experimentos/` e refaz `tabela.md`. Recusa rodar no `test`.
+
+### Resultado
+
+A busca densa reproduziu exatamente os números do baseline (recall@5 0,85, MRR 0,76), o que confere o executor. O BM25 teve recall@5 de 0,50 e a híbrida, 0,56. A hipótese de que a híbrida ganharia nas perguntas de termo exato foi contrariada: caiu de 0,60 para 0,40. A análise está no [plano](PLANO.md#etapa-2-o-que-a-primeira-rodada-mostrou).
+
+### Ressalvas
+
+- O gabarito ainda está em validação humana. Se perguntas do `dev` mudarem, basta rodar o comando de novo.
+- São 5 perguntas de termo exato no `dev`: a queda de 0,60 para 0,40 é uma pergunta.
 
 ## Testes
 

@@ -22,20 +22,10 @@ from rag_leis.evaluate import (
     reciproco_da_posicao,
     resumir,
 )
+from rag_leis.retrieve import BUSCAS, PADRAO, montar_pipeline
 
 RESULTADOS = Path("results/experimentos")
 TIPOS = ("geral", "direta", "leiga", "varios_artigos", "termo_exato")
-BUSCAS = ("densa", "bm25", "hibrida")
-PADRAO = {
-    "k": 5,
-    "profundidade": 50,
-    "rrf_c": 60,
-    "pesos": [1.0, 1.0],
-    "referencia": False,
-    "reranker": None,
-    "candidatos": 20,
-    "split": "dev",
-}
 
 
 def ler_config(caminho: Path) -> dict:
@@ -49,6 +39,8 @@ def ler_config(caminho: Path) -> dict:
 def rotulo(config: dict) -> str:
     """Descrição curta do que mudou em relação à busca pura, para a tabela."""
     partes = [config["busca"]]
+    if config["cabecalho"]:
+        partes[0] += " com cabeçalho"
     if config["busca"] == "hibrida" and config["pesos"] != PADRAO["pesos"]:
         partes[0] += " (pesos " + " / ".join(f"{p:g}" for p in config["pesos"]) + ")"
     if config["reranker"]:
@@ -56,80 +48,6 @@ def rotulo(config: dict) -> str:
     if config["referencia"]:
         partes.append("artigo citado primeiro")
     return " + ".join(partes)
-
-
-def montar_busca(config: dict):
-    """Devolve uma função (pergunta, n) -> n ids, do mais para o menos relevante."""
-    # Imports aqui dentro: a busca densa carrega o modelo de embedding, que é pesado.
-    from rag_leis.retrieve import BuscadorBM25, fundir_rrf
-
-    if config["busca"] == "bm25":
-        bm25 = BuscadorBM25()
-        return lambda pergunta, n: [a["id"] for a in bm25.buscar(pergunta, n)]
-
-    from rag_leis.retrieve import Buscador
-
-    densa = Buscador()
-    if config["busca"] == "densa":
-        return lambda pergunta, n: [a["id"] for a in densa.buscar(pergunta, n)]
-
-    bm25 = BuscadorBM25()
-
-    def hibrida(pergunta: str, n: int) -> list[str]:
-        # Cada busca traz uma lista mais funda que n, para a fusão ter de onde escolher.
-        profundidade = max(n, config["profundidade"])
-        rankings = [
-            [a["id"] for a in buscador.buscar(pergunta, profundidade)]
-            for buscador in (densa, bm25)
-        ]
-        fundido = fundir_rrf(rankings, config["rrf_c"], config["pesos"])
-        return [artigo for artigo, _ in fundido][:n]
-
-    return hibrida
-
-
-def com_reranker(buscar, config: dict):
-    """Reordena os primeiros candidatos com um cross-encoder, que lê pergunta e artigo juntos."""
-    from sentence_transformers import CrossEncoder
-
-    from rag_leis.index import carregar_corpus
-
-    textos = {registro["id"]: registro["texto"] for registro in carregar_corpus()}
-    modelo = CrossEncoder(config["reranker"], device="cpu", max_length=512)
-
-    def reordenar(pergunta: str, n: int) -> list[str]:
-        candidatos = buscar(pergunta, max(n, config["candidatos"]))
-        notas = modelo.predict(
-            [(pergunta, textos[c]) for c in candidatos], batch_size=4
-        )
-        ordem = sorted(zip(candidatos, notas, strict=True), key=lambda par: -par[1])
-        return [artigo for artigo, _ in ordem][:n]
-
-    return reordenar
-
-
-def com_referencia(buscar):
-    """Põe na frente os artigos que a pergunta cita pelo número e completa com a busca."""
-    from rag_leis.index import carregar_corpus
-    from rag_leis.retrieve import artigos_citados
-
-    ids = {registro["id"] for registro in carregar_corpus()}
-
-    def buscar_citados_primeiro(pergunta: str, n: int) -> list[str]:
-        citados = artigos_citados(pergunta, ids)
-        resto = [a for a in buscar(pergunta, n + len(citados)) if a not in citados]
-        return (citados + resto)[:n]
-
-    return buscar_citados_primeiro
-
-
-def montar_pipeline(config: dict):
-    buscar = montar_busca(config)
-    if config["reranker"]:
-        buscar = com_reranker(buscar, config)
-    if config["referencia"]:
-        buscar = com_referencia(buscar)
-    return lambda pergunta: buscar(pergunta, config["k"])
 
 
 def medir_busca(gold: list[dict], recuperados: dict[str, list[str]]) -> list[dict]:

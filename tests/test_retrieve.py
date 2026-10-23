@@ -53,3 +53,21 @@ def test_artigos_citados_sem_lei_vale_para_todas() -> None:
 
 def test_artigos_citados_ignora_pergunta_sem_numero() -> None:
     assert artigos_citados("Comprei e me arrependi, posso devolver?", IDS) == []
+
+
+def test_texto_indexado_com_cabecalho_nomeia_a_lei() -> None:
+    from rag_leis.index import texto_indexado
+
+    registro = {
+        "lei": "Lei 8.078/1990",
+        "artigo": "49",
+        "titulo": "Dos Direitos do Consumidor",
+        "capitulo": "",
+        "texto": "Art. 49. O consumidor pode desistir do contrato...",
+    }
+    assert texto_indexado(registro) == registro["texto"]
+    com = texto_indexado(registro, cabecalho=True)
+    assert com.startswith(
+        "Lei 8.078/1990 (Código de Defesa do Consumidor, CDC), art. 49 · Dos Direitos"
+    )
+    assert com.endswith(registro["texto"])

@@ -1,4 +1,5 @@
-"""Busca de artigos: densa (por significado), BM25 (por palavra) e híbrida (as duas)."""
+"""Busca de artigos: densa (por significado), BM25 (por palavra), híbrida, reranker e
+artigos citados pelo número, combinados a partir de uma configuração."""
 
 import json
 import re
@@ -10,29 +11,27 @@ import numpy as np
 from rank_bm25 import BM25Okapi
 
 from rag_leis.index import (
-    ARQUIVO_IDS,
-    ARQUIVO_INDICE,
+    arquivos_do_indice,
     carregar_corpus,
     carregar_modelo,
     embutir,
+    texto_indexado,
 )
 
 
 class Buscador:
-    def __init__(self) -> None:
-        if not ARQUIVO_INDICE.exists():
-            raise FileNotFoundError(
-                "Índice não encontrado. Rode: python -m rag_leis.index"
-            )
-        metadados = json.loads(ARQUIVO_IDS.read_text(encoding="utf-8"))
+    def __init__(self, cabecalho: bool = False) -> None:
+        arquivo_indice, arquivo_ids = arquivos_do_indice(cabecalho)
+        comando = "python -m rag_leis.index" + (" --cabecalho" if cabecalho else "")
+        if not arquivo_indice.exists():
+            raise FileNotFoundError(f"Índice não encontrado. Rode: {comando}")
+        metadados = json.loads(arquivo_ids.read_text(encoding="utf-8"))
         self.ids: list[str] = metadados["ids"]
-        self.indice = faiss.read_index(str(ARQUIVO_INDICE))
+        self.indice = faiss.read_index(str(arquivo_indice))
         self.modelo = carregar_modelo(metadados["modelo"])
         self.artigos = {registro["id"]: registro for registro in carregar_corpus()}
         if set(self.ids) != set(self.artigos):
-            raise ValueError(
-                "Índice e corpus não batem. Rode: python -m rag_leis.index"
-            )
+            raise ValueError(f"Índice e corpus não batem. Rode: {comando}")
 
     def buscar(self, pergunta: str, k: int = 5) -> list[dict]:
         vetor = embutir(self.modelo, [pergunta])
@@ -62,10 +61,14 @@ def tokenizar(texto: str) -> list[str]:
 class BuscadorBM25:
     """Busca por palavra: pontua cada artigo pelos termos da pergunta que ele contém."""
 
-    def __init__(self, corpus: list[dict] | None = None) -> None:
+    def __init__(
+        self, corpus: list[dict] | None = None, cabecalho: bool = False
+    ) -> None:
         corpus = carregar_corpus() if corpus is None else corpus
         self.artigos = corpus
-        self.bm25 = BM25Okapi([tokenizar(registro["texto"]) for registro in corpus])
+        self.bm25 = BM25Okapi(
+            [tokenizar(texto_indexado(registro, cabecalho)) for registro in corpus]
+        )
 
     def buscar(self, pergunta: str, k: int = 5) -> list[dict]:
         pontuacoes = self.bm25.get_scores(tokenizar(pergunta))
@@ -125,6 +128,88 @@ def artigos_citados(pergunta: str, ids: set[str]) -> list[str]:
             if artigo in ids and artigo not in citados:
                 citados.append(artigo)
     return citados
+
+
+# Configuração de busca: os experimentos e o app montam a mesma pipeline a partir dela.
+BUSCAS = ("densa", "bm25", "hibrida")
+PADRAO = {
+    "k": 5,
+    "profundidade": 50,
+    "rrf_c": 60,
+    "pesos": [1.0, 1.0],
+    "referencia": False,
+    "cabecalho": False,
+    "reranker": None,
+    "candidatos": 20,
+    "split": "dev",
+}
+
+
+def montar_busca(config: dict):
+    """Devolve uma função (pergunta, n) -> n ids, do mais para o menos relevante."""
+    if config["busca"] == "bm25":
+        bm25 = BuscadorBM25(cabecalho=config["cabecalho"])
+        return lambda pergunta, n: [a["id"] for a in bm25.buscar(pergunta, n)]
+
+    densa = Buscador(cabecalho=config["cabecalho"])
+    if config["busca"] == "densa":
+        return lambda pergunta, n: [a["id"] for a in densa.buscar(pergunta, n)]
+
+    bm25 = BuscadorBM25(cabecalho=config["cabecalho"])
+
+    def hibrida(pergunta: str, n: int) -> list[str]:
+        # Cada busca traz uma lista mais funda que n, para a fusão ter de onde escolher.
+        profundidade = max(n, config["profundidade"])
+        rankings = [
+            [a["id"] for a in buscador.buscar(pergunta, profundidade)]
+            for buscador in (densa, bm25)
+        ]
+        fundido = fundir_rrf(rankings, config["rrf_c"], config["pesos"])
+        return [artigo for artigo, _ in fundido][:n]
+
+    return hibrida
+
+
+def com_reranker(buscar, config: dict):
+    """Reordena os primeiros candidatos com um cross-encoder, que lê pergunta e artigo juntos."""
+    from sentence_transformers import CrossEncoder
+
+    textos = {
+        registro["id"]: texto_indexado(registro, config["cabecalho"])
+        for registro in carregar_corpus()
+    }
+    modelo = CrossEncoder(config["reranker"], device="cpu", max_length=512)
+
+    def reordenar(pergunta: str, n: int) -> list[str]:
+        candidatos = buscar(pergunta, max(n, config["candidatos"]))
+        notas = modelo.predict(
+            [(pergunta, textos[c]) for c in candidatos], batch_size=4
+        )
+        ordem = sorted(zip(candidatos, notas, strict=True), key=lambda par: -par[1])
+        return [artigo for artigo, _ in ordem][:n]
+
+    return reordenar
+
+
+def com_referencia(buscar):
+    """Põe na frente os artigos que a pergunta cita pelo número e completa com a busca."""
+    ids = {registro["id"] for registro in carregar_corpus()}
+
+    def buscar_citados_primeiro(pergunta: str, n: int) -> list[str]:
+        citados = artigos_citados(pergunta, ids)
+        resto = [a for a in buscar(pergunta, n + len(citados)) if a not in citados]
+        return (citados + resto)[:n]
+
+    return buscar_citados_primeiro
+
+
+def montar_pipeline(config: dict):
+    buscar = montar_busca(config)
+    if config["reranker"]:
+        buscar = com_reranker(buscar, config)
+    if config["referencia"]:
+        buscar = com_referencia(buscar)
+    return lambda pergunta: buscar(pergunta, config["k"])
 
 
 @lru_cache(maxsize=1)

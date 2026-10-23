@@ -8,6 +8,7 @@
       1.0
     ],
     "referencia": true,
+    "cabecalho": false,
     "reranker": null,
     "candidatos": 20,
     "split": "dev",

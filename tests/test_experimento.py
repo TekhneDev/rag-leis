@@ -2,7 +2,8 @@ import json
 
 import pytest
 
-from rag_leis.experimento import PADRAO, com_referencia, ler_config, medir_busca, rotulo
+from rag_leis.experimento import ler_config, medir_busca, rotulo
+from rag_leis.retrieve import PADRAO, com_referencia
 
 
 def test_ler_config_preenche_padroes(tmp_path) -> None:
@@ -22,12 +23,12 @@ def test_rotulo_descreve_as_variacoes() -> None:
 
 
 def test_referencia_poe_o_citado_na_frente(monkeypatch) -> None:
-    from rag_leis import index
+    from rag_leis import retrieve
 
     corpus = [
         {"id": i, "texto": ""} for i in ("cdc-art-49", "cdc-art-18", "lgpd-art-7")
     ]
-    monkeypatch.setattr(index, "carregar_corpus", lambda: corpus)
+    monkeypatch.setattr(retrieve, "carregar_corpus", lambda: corpus)
     buscar = com_referencia(
         lambda pergunta, n: ["cdc-art-18", "cdc-art-49", "lgpd-art-7"][:n]
     )

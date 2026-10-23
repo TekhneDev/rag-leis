@@ -18,9 +18,9 @@ Em construção. O sistema responde perguntas de ponta a ponta com busca densa e
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | Concluída |
 | 4. Avaliação | `evaluate.py` e números do baseline | Métricas prontas; o juiz `gemma3:12b` passou na sonda e falta a rotulagem humana |
 | 5. Experimentos | Tabela de resultados e análise de erros | Busca: 7 configurações medidas no `dev`; geração a fazer |
-| 6. Entrega | App e demo | A fazer |
+| 6. Entrega | App e demo | App em Streamlit pronto; falta README final e demo pública |
 
-O plano completo, com conceitos, métricas e armadilhas, está em [Roadmap RAG jurídico com avaliação](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md). O que foi feito em cada fase, passo a passo, com os problemas encontrados, está no [diário do projeto](DIARIO.md). Os próximos passos, ligados ao que o mercado de trabalho pede, estão no [plano](PLANO.md).
+O plano completo, com conceitos, métricas e armadilhas, está em [Roadmap RAG jurídico com avaliação](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md). O que foi feito em cada fase, passo a passo, com os problemas encontrados, está no [diário do projeto](DIARIO.md). Os próximos passos, ligados ao que o mercado de trabalho pede, estão no [plano](PLANO.md). Para apresentar o projeto a quem não leu o código, há duas páginas em [`docs/apresentacao/`](docs/apresentacao/).
 
 ## Corpus
 
@@ -119,6 +119,19 @@ Resultados em `results/experimentos/tabela.md`. Principais linhas, no `dev`:
 
 A busca híbrida piorou em vez de melhorar. O reranker (`BAAI/bge-reranker-v2-m3`, sobre os 20 primeiros da densa) ajudou nas perguntas leigas, e trazer primeiro o artigo que a pergunta cita pelo número ajudou no termo exato. A melhor linha foi escolhida olhando o `dev`, então é otimista; o número final sai do `test`, uma única vez. Com o reranker, cada pergunta leva cerca de 30 segundos a mais em CPU. A análise está no [plano](PLANO.md#etapa-4-resultado).
 
+## App
+
+Interface web com campo de pergunta, a resposta e os artigos usados ao lado, cada um com o texto completo e o link para a lei no Planalto.
+
+```bash
+pip install -e ".[app]"
+python -m rag_leis.index --cabecalho    # índice com o nome da lei, usado pelo app
+ollama serve                            # em outro terminal, para gerar a resposta
+streamlit run app.py
+```
+
+Na barra lateral dá para escolher entre a busca rápida e a completa, com reranker, e desligar a geração para ver só os artigos, sem o Ollama. As duas buscas são as melhores linhas da tabela de experimentos.
+
 ## Estrutura
 
 ```text
@@ -140,6 +153,7 @@ rag-leis/
   experiments/       # um arquivo de configuração por experimento
   results/           # saídas e tabela final
   tests/
+  app.py             # interface web (Streamlit)
   pyproject.toml
 ```
 

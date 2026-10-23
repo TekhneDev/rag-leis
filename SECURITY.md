@@ -11,7 +11,7 @@ O projeto não tem releases. Só a versão atual do branch `main` recebe correç
 1. Abra https://github.com/TekhneDev/rag-leis/security/advisories/new, ou vá em **Security → Report a vulnerability** no repositório.
 2. Descreva o problema, como reproduzir, o impacto e, se tiver, uma sugestão de correção.
 
-O relato fica visível só para você e para a mantenedora.
+O relato fica visível só para você e para a mantenedora. Se não puder usar o GitHub, escreva para tekhnedev@outlook.com com o assunto "Segurança rag-leis".
 
 ## O que esperar
 

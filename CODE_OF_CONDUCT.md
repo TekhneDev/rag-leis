@@ -31,10 +31,11 @@ Este código vale em todos os espaços do projeto (issues, pull requests, discus
 
 ## Como relatar
 
-Relatos de comportamento inaceitável podem ser feitos de duas formas:
+Relatos de comportamento inaceitável podem ser feitos de três formas:
 
-1. Pelo menu **⋯ → Report content** do GitHub, no comentário ou na issue em questão. O relato não fica público e vai para a equipe do GitHub, que pode agir contra violações dos termos da plataforma.
-2. Abrindo uma issue curta, sem detalhes, pedindo um canal privado de contato com a mantenedora.
+1. **Por e-mail, em privado:** tekhnedev@outlook.com. É o canal preferido; só a mantenedora lê.
+2. Pelo menu **⋯ → Report content** do GitHub, no comentário ou na issue em questão. O relato não fica público e vai para a equipe do GitHub, que pode agir contra violações dos termos da plataforma.
+3. Abrindo uma issue curta, sem detalhes, pedindo contato com a mantenedora.
 
 Todos os relatos serão analisados com sigilo, e quem relata não sofrerá retaliação.
 

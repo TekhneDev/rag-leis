@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rag-leis na empresa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: storyboard num bloco quadriculado de engenharia. Cada cena é um quadro desenhado
+   à mão ao lado do texto; no centro, a estante com os 406 artigos reais. Cores por lei. */
+:root{
+  --paper:#F6F8FA; --grid:#DFE6EE; --ink:#1B2733; --soft:#5B6876; --card:#FFFFFF;
+  --lgpd:#2E63B8; --cdc:#D0561F; --lic:#138585;
+  --mark:#FFE14D; --ok:#2E8540; --bad:#C6302A;
+  --f-hand:"Kalam", "Comic Neue", "Segoe Print", cursive;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#172027; --grid:#24303A; --ink:#E5ECF1; --soft:#9AA8B5; --card:#1E2932;
+  --lgpd:#86AEF2; --cdc:#F39C68; --lic:#55C8C1;
+  --mark:#E7CC45; --ok:#73CC80; --bad:#F2857B;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#172027; --grid:#24303A; --ink:#E5ECF1; --soft:#9AA8B5; --card:#1E2932;
+  --lgpd:#86AEF2; --cdc:#F39C68; --lic:#55C8C1;
+  --mark:#E7CC45; --ok:#73CC80; --bad:#F2857B;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+:focus-visible{outline:3px solid var(--lgpd);outline-offset:2px;border-radius:4px}
+a{color:var(--lgpd)}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-hand);font-weight:700;line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.4rem,6.5vw,4.4rem)}
+h2{font-size:clamp(1.8rem,4vw,2.6rem)}
+h3{font-size:1.35rem}
+p{margin:0}
+.hl{background:linear-gradient(transparent 55%,var(--mark) 55%);padding:0 .1em}
+.mono{font-family:var(--f-mono);font-size:.85em}
+.soft{color:var(--soft)}
+
+svg text{font-family:var(--f-hand);fill:var(--ink)}
+svg .t-s{font-size:13px}
+svg .t-m{font-size:16px}
+svg .t-l{font-size:20px;font-weight:700}
+svg .t-mono{font-family:var(--f-mono);font-size:11px;fill:var(--soft)}
+svg .t-bad{fill:var(--bad)}
+svg .t-ok{fill:var(--ok)}
+svg .t-soft{fill:var(--soft)}
+.draw{display:block;width:100%;height:auto;max-width:100%}
+
+/* hero */
+.hero{padding-block:clamp(36px,7vw,72px) 24px;display:grid;gap:18px}
+.kicker{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.lede{font-size:1.15rem;max-width:60ch}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:14px;height:14px;border-radius:3px;display:inline-block}
+
+/* cenas */
+.scene{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:center;padding-block:clamp(36px,6vw,64px)}
+.scene.rev{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
+.scene.rev .frame{order:2}
+@media (max-width:820px){.scene,.scene.rev{grid-template-columns:minmax(0,1fr)}.scene.rev .frame{order:0}}
+.frame{background:var(--card);border-radius:6px;padding:10px;position:relative;box-shadow:4px 5px 0 var(--grid)}
+.frame-tag{position:absolute;top:-14px;left:16px;font-family:var(--f-hand);font-weight:700;background:var(--ink);color:var(--paper);padding:2px 12px;border-radius:4px;font-size:.95rem;transform:rotate(-2deg)}
+.copy{display:grid;gap:14px;min-width:0}
+.copy p{max-width:58ch}
+.note{font-family:var(--f-hand);font-size:1.15rem;color:var(--soft);line-height:1.35}
+
+/* demo */
+.demo-sec{padding-block:clamp(36px,6vw,64px)}
+.demo-head{display:grid;gap:12px;margin-bottom:22px;max-width:70ch}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tab{all:unset;box-sizing:border-box;cursor:pointer;font-family:var(--f-hand);font-size:1.08rem;padding:6px 14px;border:2px solid var(--ink);border-radius:10px 14px 9px 13px;background:var(--card);line-height:1.2}
+.tab small{display:block;font-family:var(--f-body);font-size:.75rem;color:var(--soft)}
+.tab[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tab[aria-pressed="true"] small{color:var(--paper);opacity:.75}
+.tab:focus-visible{outline:3px solid var(--lgpd);outline-offset:2px}
+.board{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.board{grid-template-columns:minmax(0,1fr)}}
+.shelf-box{background:var(--card);border-radius:6px;padding:12px;box-shadow:4px 5px 0 var(--grid);min-width:0}
+.shelf-scroll{overflow-x:auto}
+.shelf-scroll svg{min-width:640px}
+.who{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+.who b{font-family:var(--f-hand);font-size:1.2rem}
+.question{font-family:var(--f-hand);font-size:1.35rem;line-height:1.3;margin-bottom:6px}
+.spine{transition:transform .45s cubic-bezier(.3,1.6,.5,1),fill .3s}
+.scan{transition:transform 0s}
+.hits{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px;font-family:var(--f-mono);font-size:.82rem}
+.hits li{display:grid;grid-template-columns:22px minmax(0,1fr) 52px;gap:8px;align-items:center;padding:3px 6px;border-radius:4px}
+.hits li.exp{background:color-mix(in srgb,var(--mark) 45%,transparent)}
+.hits .r{font-family:var(--f-hand);font-weight:700;font-size:1rem}
+.hits .s{text-align:right;font-variant-numeric:tabular-nums;color:var(--soft)}
+.card{background:var(--card);border-radius:4px;padding:18px 18px 22px;box-shadow:4px 5px 0 var(--grid);position:relative;display:grid;gap:12px;min-width:0;
+  background-image:repeating-linear-gradient(transparent 0 27px,var(--grid) 27px 28px);background-position:0 46px}
+.card h3{font-size:1.1rem}
+.answer{font-size:.98rem;line-height:28px;white-space:pre-line;overflow-wrap:anywhere}
+.answer.abst{font-style:italic}
+.cite{font-family:var(--f-mono);font-size:.8rem;background:var(--mark);color:#1B2733;padding:1px 6px;border-radius:3px;width:fit-content}
+.stamp{justify-self:end;font-family:var(--f-hand);font-weight:700;font-size:1.15rem;text-transform:uppercase;letter-spacing:.04em;border:3px solid currentColor;border-radius:6px;padding:2px 12px;transform:rotate(-6deg);line-height:1.2;text-align:center;max-width:100%}
+.stamp small{display:block;font-size:.7rem;letter-spacing:0;text-transform:none;font-family:var(--f-body);font-weight:400}
+.stamp.ok{color:var(--ok)} .stamp.bad{color:var(--bad)} .stamp.warn{color:var(--cdc)}
+.stamp.drop{animation:drop .5s cubic-bezier(.3,1.7,.5,1)}
+@keyframes drop{from{transform:rotate(-6deg) scale(1.8);opacity:0}to{transform:rotate(-6deg) scale(1);opacity:1}}
+.why{font-size:.95rem}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:22px}
+@media (max-width:700px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.steps div{font-size:.88rem;display:grid;gap:2px}
+.steps b{font-family:var(--f-hand);font-size:1.15rem}
+.play{all:unset;cursor:pointer;font-family:var(--f-hand);font-weight:700;font-size:1rem;padding:4px 14px;border-radius:999px;background:var(--mark);color:#1B2733;margin-left:auto;white-space:nowrap}
+.play:focus-visible{outline:3px solid var(--ink)}
+
+/* usos */
+.uses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:24px}
+@media (max-width:900px){.uses{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.uses{grid-template-columns:minmax(0,1fr)}}
+.use{background:var(--card);border-radius:6px;padding:14px 16px 18px;box-shadow:4px 5px 0 var(--grid);display:grid;gap:8px;align-content:start}
+.use svg{width:120px;height:80px}
+.use dl{margin:0;display:grid;gap:6px;font-size:.9rem}
+.use dt{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.use dd{margin:0}
+.take{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:24px}
+@media (max-width:820px){.take{grid-template-columns:minmax(0,1fr)}}
+.take div{display:grid;gap:6px;border-top:3px solid var(--ink);padding-top:12px}
+.take b{font-family:var(--f-hand);font-size:1.25rem}
+footer{padding-block:40px 56px;font-size:.88rem;color:var(--soft)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <span class="kicker">rag-leis · desenhado</span>
+    <h1>Uma pergunta,<br>um artigo, <span class="hl">uma decisão</span>.</h1>
+    <p class="lede">O que o rag-leis faz dentro de uma empresa grande, contado em seis quadros. Os desenhos são ilustração; as perguntas, os artigos e os números são saídas reais do projeto, no split <span class="mono">dev</span>.</p>
+    <div class="legend">
+      <span><i style="background:var(--lgpd)"></i>LGPD · 80 artigos</span>
+      <span><i style="background:var(--cdc)"></i>Código de Defesa do Consumidor · 130</span>
+      <span><i style="background:var(--lic)"></i>Lei de Licitações · 196</span>
+    </div>
+  </header>
+
+  <section class="scene" aria-labelledby="c1">
+    <div class="frame"><span class="frame-tag">Cena 1</span><svg class="draw" id="s1" viewBox="0 0 560 340" role="img" aria-label="Uma cliente pergunta pelo telefone; o atendente, cercado por pilhas de lei, não sabe qual artigo responde."></svg></div>
+    <div class="copy">
+      <h2 id="c1">O telefone toca na central</h2>
+      <p>Uma rede de lojas tem milhares de atendentes. A cliente pergunta: <i>"A loja anunciou um preço e se recusou a vender. O que eu posso fazer?"</i></p>
+      <p>A resposta está na lei, em algum lugar entre 406 artigos. O atendente novo não sabe de cor. Pergunta ao supervisor, procura num manual, e a fila cresce.</p>
+      <p class="note">Resposta errada aqui vira reclamação no Procon e processo.</p>
+    </div>
+  </section>
+
+  <section class="scene rev" aria-labelledby="c2">
+    <div class="frame"><span class="frame-tag">Cena 2</span><svg class="draw" id="s2" viewBox="0 0 560 320" role="img" aria-label="Um robô responde com confiança um prazo inventado, e a resposta vira uma reclamação."></svg></div>
+    <div class="copy">
+      <h2 id="c2">O atalho perigoso</h2>
+      <p>Alguém sugere: "põe um chatbot". Um modelo de linguagem sozinho responde de memória, e às vezes inventa um prazo ou uma regra com toda a confiança. Isso se chama <b>alucinação</b>.</p>
+      <p>Num assunto jurídico, uma resposta inventada é pior que nenhuma.</p>
+      <p class="note">O balão do robô é um exemplo ilustrativo de alucinação, não uma saída do projeto.</p>
+    </div>
+  </section>
+
+  <section class="demo-sec" id="demo" aria-labelledby="c3">
+    <div class="demo-head">
+      <span class="kicker">Cena 3 · ao vivo, com saídas reais</span>
+      <h2 id="c3">Com o rag-leis: primeiro procura, depois responde</h2>
+      <p>Cada traço na estante é um artigo de verdade do corpus. Escolha quem está perguntando: a busca puxa os 5 artigos mais parecidos com a pergunta, o modelo responde só com eles e cita a fonte.</p>
+    </div>
+    <div class="tabs" id="tabs" role="group" aria-label="Quem pergunta"></div>
+    <div class="board">
+      <div class="shelf-box">
+        <div class="who"><div style="min-width:0"><b id="d-who"></b><p class="question" id="d-q"></p></div><button class="play" id="play" type="button">▶ rodar de novo</button></div>
+        <div class="shelf-scroll"><svg class="draw" id="shelf" viewBox="0 0 1000 340" role="img" aria-label="Estante com os 406 artigos; os 5 recuperados aparecem destacados e numerados."></svg></div>
+        <ol class="hits" id="d-hits"></ol>
+      </div>
+      <div class="card" aria-live="polite">
+        <h3>Resposta para o atendente</h3>
+        <p class="answer" id="d-a"></p>
+        <span class="cite" id="d-cite"></span>
+        <p class="why" id="d-why"></p>
+        <span class="stamp" id="d-stamp"></span>
+      </div>
+    </div>
+    <div class="steps">
+      <div><b>1. Vira coordenada</b><span>A pergunta vira um vetor de 1.024 números (bge-m3).</span></div>
+      <div><b>2. Compara com 406</b><span>Mede a distância até cada artigo da estante (FAISS).</span></div>
+      <div><b>3. Puxa os 5</b><span>Só os 5 mais próximos vão para o modelo.</span></div>
+      <div><b>4. Responde citando</b><span>gemma3:4b local; sem base, diz "Não encontrei na base."</span></div>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="c4">
+    <div class="frame"><span class="frame-tag">Cena 4</span><svg class="draw" id="s4" viewBox="0 0 680 380" role="img" aria-label="Boletim desenhado do sistema: acha o artigo em 85% das perguntas, responde certo em 74%, mas só 30% em linguagem de cliente."></svg></div>
+    <div class="copy">
+      <h2 id="c4">A diretora pergunta: posso confiar?</h2>
+      <p>Antes de colocar 2.000 atendentes usando, alguém precisa responder com números. É aqui que o projeto se diferencia de uma demo: ele tem um <b>gabarito</b> de 75 perguntas, escrito antes do sistema existir, e mede cada parte separadamente.</p>
+      <p>A média parece boa. O boletim por tipo de pergunta mostra o ponto fraco: quando o cliente fala do jeito dele, sem as palavras da lei, o sistema acerta muito menos.</p>
+      <p class="note">"Resposta correta" vem de um juiz LLM que passou numa sonda, mas ainda aguarda a comparação com rótulos humanos.</p>
+    </div>
+  </section>
+
+  <section class="scene rev" aria-labelledby="c5">
+    <div class="frame"><span class="frame-tag">Cena 5</span><svg class="draw" id="s5" viewBox="0 0 680 380" role="img" aria-label="Gráfico desenhado dos experimentos de busca: a busca híbrida piorou; citar o artigo direto foi o melhor."></svg></div>
+    <div class="copy">
+      <h2 id="c5">Antes de gastar, testar</h2>
+      <p>O fornecedor oferece a busca "híbrida", que junta busca por significado e por palavra. Parece óbvio que melhora. O projeto testou, uma peça por vez, nas mesmas perguntas.</p>
+      <p>Piorou: o artigo certo apareceu entre os 5 em menos perguntas. O que funcionou foi juntar duas peças: um reranker, que relê os 20 primeiros e ajudou nas perguntas leigas, e uma regra simples, "se a pergunta cita o número do artigo, traga esse artigo primeiro". Juntos, o artigo certo veio em 93% das perguntas, contra 85% no início.</p><p>O preço: o reranker soma uns 30 segundos por pergunta em CPU.</p>
+      <p class="note">Numa empresa, essa tabela é a diferença entre comprar uma solução e saber que ela não serve.</p>
+    </div>
+  </section>
+
+  <section class="scene" aria-labelledby="c6">
+    <div class="frame"><span class="frame-tag">Cena 6</span><svg class="draw" id="s6" viewBox="0 0 560 300" role="img" aria-label="Um prédio com o servidor e o modelo dentro, trancado; a nuvem externa fica de fora."></svg></div>
+    <div class="copy">
+      <h2 id="c6">Tudo roda dentro de casa</h2>
+      <p>O modelo de busca e o modelo que responde rodam numa máquina comum, sem chave de API. A pergunta do cliente não sai do prédio.</p>
+      <p>Para um banco ou uma seguradora, isso importa: mandar dados de clientes para um serviço externo é justamente o que a LGPD obriga a pensar duas vezes.</p>
+      <p class="note">O preço: cada resposta leva de 1 a 2 minutos em CPU. Medir esse custo também faz parte do trabalho.</p>
+    </div>
+  </section>
+
+  <section style="padding-block:clamp(36px,6vw,64px)" aria-labelledby="usos">
+    <span class="kicker">Troca a estante, serve para qualquer empresa</span>
+    <h2 id="usos" style="margin-top:8px">O mesmo método, outros corpora</h2>
+    <p style="margin-top:12px;max-width:62ch">A técnica não sabe que está lendo lei. No lugar das três leis entram os documentos da empresa. O que continua igual é o método: gabarito antes, busca e resposta medidas separado, e a coragem de dizer "não sei".</p>
+    <div class="uses" id="uses"></div>
+
+    <h2 style="margin-top:56px">O que isso mostra sobre você</h2>
+    <div class="take">
+      <div><b>Você mede antes de prometer</b><p>Gabarito escrito antes do sistema, com dev e test separados. É o teste de aceitação que toda empresa precisa e quase ninguém tem.</p></div>
+      <div><b>Você acha onde está o defeito</b><p>Separar busca de resposta mostrou que, nas perguntas leigas, a busca acha o artigo e o modelo é que desiste. Isso diz onde investir.</p></div>
+      <div><b>Você testa a régua</b><p>O primeiro juiz LLM aprovou 2 de 3 respostas falsas e foi descartado. Quem confere a ferramenta de medir merece confiança.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">rag-leis · estudo sobre RAG e avaliação, não substitui orientação jurídica · saídas do baseline e experimentos no split dev · <a href="rag-leis-por-dentro.html">visão técnica do projeto</a></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+<script>
+const DATA = {"ids": ["lgpd-art-1", "lgpd-art-2", "lgpd-art-3", "lgpd-art-4", "lgpd-art-5", "lgpd-art-6", "lgpd-art-7", "lgpd-art-8", "lgpd-art-9", "lgpd-art-10", "lgpd-art-11", "lgpd-art-12", "lgpd-art-13", "lgpd-art-14", "lgpd-art-15", "lgpd-art-16", "lgpd-art-17", "lgpd-art-18", "lgpd-art-19", "lgpd-art-20", "lgpd-art-21", "lgpd-art-22", "lgpd-art-23", "lgpd-art-24", "lgpd-art-25", "lgpd-art-26", "lgpd-art-27", "lgpd-art-28", "lgpd-art-29", "lgpd-art-30", "lgpd-art-31", "lgpd-art-32", "lgpd-art-33", "lgpd-art-34", "lgpd-art-35", "lgpd-art-36", "lgpd-art-37", "lgpd-art-38", "lgpd-art-39", "lgpd-art-40", "lgpd-art-41", "lgpd-art-42", "lgpd-art-43", "lgpd-art-44", "lgpd-art-45", "lgpd-art-46", "lgpd-art-47", "lgpd-art-48", "lgpd-art-49", "lgpd-art-50", "lgpd-art-51", "lgpd-art-52", "lgpd-art-53", "lgpd-art-54", "lgpd-art-55", "lgpd-art-55-A", "lgpd-art-55-B", "lgpd-art-55-C", "lgpd-art-55-D", "lgpd-art-55-E", "lgpd-art-55-F", "lgpd-art-55-G", "lgpd-art-55-H", "lgpd-art-55-I", "lgpd-art-55-J", "lgpd-art-55-K", "lgpd-art-55-L", "lgpd-art-55-M", "lgpd-art-56", "lgpd-art-57", "lgpd-art-58", "lgpd-art-58-A", "lgpd-art-58-B", "lgpd-art-59", "lgpd-art-60", "lgpd-art-61", "lgpd-art-62", "lgpd-art-63", "lgpd-art-64", "lgpd-art-65", "cdc-art-1", "cdc-art-2", "cdc-art-3", "cdc-art-4", "cdc-art-5", "cdc-art-6", "cdc-art-7", "cdc-art-8", "cdc-art-9", "cdc-art-10", "cdc-art-11", "cdc-art-12", "cdc-art-13", "cdc-art-14", "cdc-art-15", "cdc-art-16", "cdc-art-17", "cdc-art-18", "cdc-art-19", "cdc-art-20", "cdc-art-21", "cdc-art-22", "cdc-art-23", "cdc-art-24", "cdc-art-25", "cdc-art-26", "cdc-art-27", "cdc-art-28", "cdc-art-29", "cdc-art-30", "cdc-art-31", "cdc-art-32", "cdc-art-33", "cdc-art-34", "cdc-art-35", "cdc-art-36", "cdc-art-37", "cdc-art-38", "cdc-art-39", "cdc-art-40", "cdc-art-41", "cdc-art-42", "cdc-art-42-A", "cdc-art-43", "cdc-art-44", "cdc-art-45", "cdc-art-46", "cdc-art-47", "cdc-art-48", "cdc-art-49", "cdc-art-50", "cdc-art-51", "cdc-art-52", "cdc-art-53", "cdc-art-54", "cdc-art-54-A", "cdc-art-54-B", "cdc-art-54-C", "cdc-art-54-D", "cdc-art-54-E", "cdc-art-54-F", "cdc-art-54-G", "cdc-art-55", "cdc-art-56", "cdc-art-57", "cdc-art-58", "cdc-art-59", "cdc-art-60", "cdc-art-61", "cdc-art-62", "cdc-art-63", "cdc-art-64", "cdc-art-65", "cdc-art-66", "cdc-art-67", "cdc-art-68", "cdc-art-69", "cdc-art-70", "cdc-art-71", "cdc-art-72", "cdc-art-73", "cdc-art-74", "cdc-art-75", "cdc-art-76", "cdc-art-77", "cdc-art-78", "cdc-art-79", "cdc-art-80", "cdc-art-81", "cdc-art-82", "cdc-art-83", "cdc-art-84", "cdc-art-85", "cdc-art-86", "cdc-art-87", "cdc-art-88", "cdc-art-89", "cdc-art-90", "cdc-art-91", "cdc-art-92", "cdc-art-93", "cdc-art-94", "cdc-art-95", "cdc-art-96", "cdc-art-97", "cdc-art-98", "cdc-art-99", "cdc-art-100", "cdc-art-101", "cdc-art-102", "cdc-art-103", "cdc-art-104", "cdc-art-104-A", "cdc-art-104-B", "cdc-art-104-C", "cdc-art-105", "cdc-art-106", "cdc-art-107", "cdc-art-108", "cdc-art-109", "cdc-art-110", "cdc-art-111", "cdc-art-112", "cdc-art-113", "cdc-art-114", "cdc-art-115", "cdc-art-116", "cdc-art-117", "cdc-art-118", "cdc-art-119", "licitacoes-art-1", "licitacoes-art-2", "licitacoes-art-3", "licitacoes-art-4", "licitacoes-art-5", "licitacoes-art-6", "licitacoes-art-7", "licitacoes-art-8", "licitacoes-art-9", "licitacoes-art-10", "licitacoes-art-11", "licitacoes-art-12", "licitacoes-art-13", "licitacoes-art-14", "licitacoes-art-15", "licitacoes-art-16", "licitacoes-art-17", "licitacoes-art-18", "licitacoes-art-19", "licitacoes-art-20", "licitacoes-art-21", "licitacoes-art-22", "licitacoes-art-23", "licitacoes-art-24", "licitacoes-art-25", "licitacoes-art-26", "licitacoes-art-27", "licitacoes-art-28", "licitacoes-art-29", "licitacoes-art-30", "licitacoes-art-31", "licitacoes-art-32", "licitacoes-art-33", "licitacoes-art-34", "licitacoes-art-35", "licitacoes-art-36", "licitacoes-art-37", "licitacoes-art-38", "licitacoes-art-39", "licitacoes-art-40", "licitacoes-art-41", "licitacoes-art-42", "licitacoes-art-43", "licitacoes-art-44", "licitacoes-art-44-A", "licitacoes-art-45", "licitacoes-art-46", "licitacoes-art-47", "licitacoes-art-48", "licitacoes-art-49", "licitacoes-art-50", "licitacoes-art-51", "licitacoes-art-52", "licitacoes-art-53", "licitacoes-art-54", "licitacoes-art-55", "licitacoes-art-56", "licitacoes-art-57", "licitacoes-art-58", "licitacoes-art-59", "licitacoes-art-60", "licitacoes-art-61", "licitacoes-art-62", "licitacoes-art-63", "licitacoes-art-64", "licitacoes-art-65", "licitacoes-art-66", "licitacoes-art-67", "licitacoes-art-68", "licitacoes-art-69", "licitacoes-art-70", "licitacoes-art-71", "licitacoes-art-72", "licitacoes-art-73", "licitacoes-art-74", "licitacoes-art-75", "licitacoes-art-76", "licitacoes-art-77", "licitacoes-art-78", "licitacoes-art-79", "licitacoes-art-80", "licitacoes-art-81", "licitacoes-art-82", "licitacoes-art-83", "licitacoes-art-84", "licitacoes-art-85", "licitacoes-art-86", "licitacoes-art-87", "licitacoes-art-88", "licitacoes-art-89", "licitacoes-art-90", "licitacoes-art-91", "licitacoes-art-92", "licitacoes-art-93", "licitacoes-art-94", "licitacoes-art-95", "licitacoes-art-96", "licitacoes-art-97", "licitacoes-art-98", "licitacoes-art-99", "licitacoes-art-100", "licitacoes-art-101", "licitacoes-art-102", "licitacoes-art-103", "licitacoes-art-104", "licitacoes-art-105", "licitacoes-art-106", "licitacoes-art-107", "licitacoes-art-108", "licitacoes-art-109", "licitacoes-art-110", "licitacoes-art-111", "licitacoes-art-112", "licitacoes-art-113", "licitacoes-art-114", "licitacoes-art-115", "licitacoes-art-116", "licitacoes-art-117", "licitacoes-art-118", "licitacoes-art-119", "licitacoes-art-120", "licitacoes-art-121", "licitacoes-art-122", "licitacoes-art-123", "licitacoes-art-124", "licitacoes-art-125", "licitacoes-art-126", "licitacoes-art-127", "licitacoes-art-128", "licitacoes-art-129", "licitacoes-art-130", "licitacoes-art-131", "licitacoes-art-132", "licitacoes-art-133", "licitacoes-art-134", "licitacoes-art-135", "licitacoes-art-136", "licitacoes-art-137", "licitacoes-art-138", "licitacoes-art-139", "licitacoes-art-140", "licitacoes-art-141", "licitacoes-art-142", "licitacoes-art-143", "licitacoes-art-144", "licitacoes-art-145", "licitacoes-art-146", "licitacoes-art-147", "licitacoes-art-148", "licitacoes-art-149", "licitacoes-art-150", "licitacoes-art-151", "licitacoes-art-152", "licitacoes-art-153", "licitacoes-art-154", "licitacoes-art-155", "licitacoes-art-156", "licitacoes-art-157", "licitacoes-art-158", "licitacoes-art-159", "licitacoes-art-160", "licitacoes-art-161", "licitacoes-art-162", "licitacoes-art-163", "licitacoes-art-164", "licitacoes-art-165", "licitacoes-art-166", "licitacoes-art-167", "licitacoes-art-168", "licitacoes-art-169", "licitacoes-art-170", "licitacoes-art-171", "licitacoes-art-172", "licitacoes-art-173", "licitacoes-art-174", "licitacoes-art-175", "licitacoes-art-176", "licitacoes-art-177", "licitacoes-art-178", "licitacoes-art-179", "licitacoes-art-180", "licitacoes-art-181", "licitacoes-art-182", "licitacoes-art-183", "licitacoes-art-184", "licitacoes-art-184-A", "licitacoes-art-185", "licitacoes-art-186", "licitacoes-art-187", "licitacoes-art-188", "licitacoes-art-189", "licitacoes-art-190", "licitacoes-art-191", "licitacoes-art-192", "licitacoes-art-193", "licitacoes-art-194"], "cenas": [{"id": "q034", "tipo": "leiga", "p": "Com quem eu falo dentro de uma empresa para reclamar de como ela usa os meus dados?", "rec": ["lgpd-art-18", "lgpd-art-42", "lgpd-art-55-J", "cdc-art-43", "lgpd-art-41"], "sc": [0.589, 0.5685, 0.5662, 0.5564, 0.5548], "r": "Você fala com o encarregado pelo tratamento de dados pessoais, conforme Lei 13.709/2018, art. 41.", "esp": ["lgpd-art-41"], "ace": ["lgpd-art-5"], "gab": "Com o encarregado pelo tratamento de dados pessoais, que o controlador deve indicar. A identidade e o contato do encarregado devem ser divulgados publicamente, de preferência no site, e cabe a ele receber reclamações dos titulares.", "correta": true, "jc": "A resposta identifica corretamente o contato adequado (o encarregado de dados) e menciona a base legal pertinente (Lei 13.709/2018), embora não detalhe a divulgação pública como a resposta esperada."}, {"id": "q038", "tipo": "leiga", "p": "A loja anunciou um preço e na hora se recusou a vender por ele. O que eu posso fazer?", "rec": ["cdc-art-35", "cdc-art-33", "cdc-art-66", "cdc-art-54-G", "cdc-art-64"], "sc": [0.5564, 0.5409, 0.5364, 0.5295, 0.5194], "r": "(Lei 8.078/1990, art. 35) Se o fornecedor de produtos ou serviços recusar cumprimento à oferta, apresentação ou publicidade, o consumidor poderá, alternativamente e à sua livre escolha: I - exigir o cumprimento forçado da obrigação, nos termos da oferta, apresentação ou publicidade; II - aceitar outro produto ou prestação de serviço equivalente; III - rescindir o contrato, com direito à restituição de quantia eventualmente antecipada, monetariamente atualizada, e a perdas e danos.", "esp": ["cdc-art-35"], "ace": ["cdc-art-30"], "gab": "O consumidor pode escolher entre exigir o cumprimento forçado da oferta, aceitar outro produto ou serviço equivalente, ou rescindir o contrato com restituição do que pagou, atualizado, e perdas e danos.", "correta": true, "jc": "A resposta reproduz exatamente o conteúdo da resposta esperada, citando a legislação pertinente e listando as opções disponíveis ao consumidor, demonstrando pleno conhecimento do tema."}, {"id": "q040", "tipo": "leiga", "p": "Meu nome está negativado por uma dívida antiga. Por quanto tempo isso pode ficar registrado?", "rec": ["cdc-art-104-A", "cdc-art-71", "cdc-art-73", "cdc-art-104-B", "licitacoes-art-148"], "sc": [0.5581, 0.534, 0.5304, 0.5243, 0.524], "r": "Não encontrei na base.", "esp": ["cdc-art-43"], "ace": [], "gab": "Os cadastros de consumidores não podem conter informações negativas referentes a período superior a cinco anos.", "correta": false, "jc": "A resposta indica que não encontrou a informação, o que contradiz a expectativa de fornecer a informação sobre o prazo de registro de dívidas negativadas."}, {"id": "q046", "tipo": "leiga", "p": "Onde encontro os editais de licitação que o governo publica?", "rec": ["licitacoes-art-54", "licitacoes-art-175", "licitacoes-art-87", "licitacoes-art-1", "licitacoes-art-25"], "sc": [0.6074, 0.5727, 0.5607, 0.5459, 0.54], "r": "(Lei 14.133/2021, art. 54) A publicidade do edital de licitação será realizada mediante divulgação e manutenção do inteiro teor do ato convocatório e de seus anexos no Portal Nacional de Contratações Públicas (PNCP).", "esp": ["licitacoes-art-54"], "ace": ["licitacoes-art-174"], "gab": "No Portal Nacional de Contratações Públicas (PNCP), onde o inteiro teor do edital e de seus anexos deve ser divulgado e mantido. Também é obrigatória a publicação de extrato no Diário Oficial e em jornal diário de grande circulação.", "correta": true, "jc": "A resposta traz a informação essencial sobre a divulgação do edital no Portal Nacional de Contratações Públicas (PNCP), conforme a legislação mencionada, embora não cite a obrigatoriedade de publicação no Diário Oficial e em jornal diário, o que estaria presente na resposta esperada. No entanto, o ponto principal foi abordado."}, {"id": "q067", "tipo": "fora_do_escopo", "p": "Qual o prazo para entrar com ação trabalhista?", "rec": ["licitacoes-art-165", "licitacoes-art-158", "licitacoes-art-55", "cdc-art-104-B", "licitacoes-art-123"], "sc": [0.5799, 0.5758, 0.5504, 0.5367, 0.5305], "r": "Não encontrei na base.", "esp": [], "ace": [], "gab": "Não encontrei na base.", "correta": null, "jc": null}]};
+const EXPER = [{"key": "densa", "n": "densa\n(baseline)", "v": 0.853, "base": true}, {"key": "bm25", "n": "BM25\n(palavra)", "v": 0.5, "worse": true}, {"key": "hibrida", "n": "híbrida", "v": 0.559, "worse": true}, {"key": "hib25", "n": "híbrida\npeso 1 / 0,25", "v": 0.632, "worse": true}, {"key": "ref", "n": "densa +\nartigo citado", "v": 0.882}, {"key": "rerank", "n": "densa +\nreranker", "v": 0.9}, {"key": "combo", "n": "reranker +\nartigo citado", "v": 0.93, "best": true}];
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const NS = "http://www.w3.org/2000/svg";
+const $ = s => document.querySelector(s);
+const fmt = v => v.toFixed(2).replace(".", ",");
+const LAW = {lgpd:"var(--lgpd)", cdc:"var(--cdc)", licitacoes:"var(--lic)"};
+
+/* ---------- caneta: Rough.js quando carrega, SVG simples quando não ---------- */
+function pen(svg, seed = 1){
+  const rc = window.rough ? rough.svg(svg) : null;
+  const base = {stroke:"var(--ink)", strokeWidth:2, roughness:1.2, bowing:1};
+  const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  const plain = o => ({fill:o.fill || "none", stroke:o.stroke || "var(--ink)", "stroke-width":o.strokeWidth || 2, "stroke-linecap":"round", "stroke-linejoin":"round", ...(o.dash ? {"stroke-dasharray":o.dash.join(" ")} : {})});
+  const opt = o => ({...base, seed:seed++, ...o, ...(o.dash ? {strokeLineDash:o.dash} : {})});
+  let parent = svg;
+  const add = n => (parent.appendChild(n), n);
+  return {
+    into(g){ parent = g; return this; },
+    group(attrs = {}){ const g = mk("g", attrs); add(g); return g; },
+    rect(x, y, w, h, o = {}){ return add(rc ? rc.rectangle(x, y, w, h, opt(o)) : mk("rect", {x, y, width:w, height:h, rx:4, ...plain(o)})); },
+    circle(cx, cy, d, o = {}){ return add(rc ? rc.circle(cx, cy, d, opt(o)) : mk("circle", {cx, cy, r:d/2, ...plain(o)})); },
+    ellipse(cx, cy, w, h, o = {}){ return add(rc ? rc.ellipse(cx, cy, w, h, opt(o)) : mk("ellipse", {cx, cy, rx:w/2, ry:h/2, ...plain(o)})); },
+    line(x1, y1, x2, y2, o = {}){ return add(rc ? rc.line(x1, y1, x2, y2, opt(o)) : mk("line", {x1, y1, x2, y2, ...plain(o)})); },
+    path(d, o = {}){ return add(rc ? rc.path(d, opt(o)) : mk("path", {d, ...plain(o)})); },
+    text(x, y, str, cls = "t-m", anchor = "start", lh = 20){
+      const t = mk("text", {x, y, class:cls, "text-anchor":anchor});
+      String(str).split("\n").forEach((ln, i) => { const s = mk("tspan", {x, dy: i ? lh : 0}); s.textContent = ln; t.appendChild(s); });
+      return add(t);
+    }
+  };
+}
+
+/* ---------- personagens e objetos ---------- */
+function person(p, x, y, o = {}){
+  const c = o.color || "var(--lgpd)";
+  p.path(`M${x-26} ${y+78} C${x-26} ${y+40} ${x-18} ${y+26} ${x} ${y+26} C${x+18} ${y+26} ${x+26} ${y+40} ${x+26} ${y+78} Z`, {fill:c, fillStyle:"hachure", hachureGap:5});
+  p.circle(x, y, 38, {fill:"var(--card)", fillStyle:"solid"});
+  p.circle(x-7, y-3, 3, {fill:"var(--ink)", fillStyle:"solid", strokeWidth:1});
+  p.circle(x+7, y-3, 3, {fill:"var(--ink)", fillStyle:"solid", strokeWidth:1});
+  const m = o.mood || "ok";
+  if (m === "ok") p.path(`M${x-7} ${y+8} Q${x} ${y+14} ${x+7} ${y+8}`, {strokeWidth:1.6});
+  if (m === "worried") p.path(`M${x-7} ${y+10} Q${x-3} ${y+7} ${x} ${y+10} Q${x+3} ${y+13} ${x+7} ${y+10}`, {strokeWidth:1.6});
+  if (m === "flat") p.line(x-6, y+10, x+6, y+10, {strokeWidth:1.6});
+  if (o.headset){ p.path(`M${x-20} ${y} Q${x} ${y-34} ${x+20} ${y}`, {strokeWidth:2.4}); p.path(`M${x+19} ${y+2} Q${x+20} ${y+16} ${x+8} ${y+16}`, {strokeWidth:1.6}); p.circle(x+7, y+16, 5, {fill:"var(--ink)", fillStyle:"solid", strokeWidth:1}); }
+}
+function bubble(p, x, y, w, h, tx, ty, txt, cls = "t-m"){
+  p.rect(x, y, w, h, {fill:"var(--card)", fillStyle:"solid"});
+  const mx = Math.min(Math.max(tx, x + 20), x + w - 30);
+  p.path(`M${mx} ${y+h} L${tx} ${ty} L${mx+18} ${y+h}`, {fill:"var(--card)", fillStyle:"solid"});
+  p.text(x + 14, y + 26, txt, cls);
+}
+
+/* ---------- cena 1 ---------- */
+function scene1(){
+  const svg = $("#s1"); svg.innerHTML = ""; const p = pen(svg, 11);
+  bubble(p, 16, 16, 240, 82, 96, 120, "A loja anunciou um preço\ne se recusou a vender.\nO que eu posso fazer?");
+  person(p, 92, 150, {color:"var(--cdc)", mood:"worried"});
+  p.rect(116, 126, 12, 24, {fill:"var(--ink)", fillStyle:"solid", strokeWidth:1});
+  p.path("M134 132 Q230 70 330 150", {dash:[6, 7], strokeWidth:1.6});
+  p.circle(330, 56, 46, {fill:"var(--card)", fillStyle:"solid"});
+  p.line(330, 56, 330, 40, {strokeWidth:2}); p.line(330, 56, 342, 62, {strokeWidth:2});
+  p.text(330, 100, "a fila cresce", "t-s t-soft", "middle");
+  p.circle(424, 116, 10); p.circle(438, 98, 14);
+  p.ellipse(486, 58, 132, 64, {fill:"var(--card)", fillStyle:"solid"});
+  p.text(486, 64, "qual artigo?!", "t-m", "middle");
+  person(p, 400, 154, {headset:true, mood:"worried", color:"var(--lgpd)"});
+  [[440,206,92,26,"var(--lgpd)"],[446,184,86,22,"var(--cdc)"],[436,164,96,20,"var(--lic)"]].forEach(([x,y,w,h,c]) => p.rect(x, y, w, h, {fill:c, fillStyle:"hachure", hachureGap:4}));
+  p.line(300, 234, 548, 234, {strokeWidth:2.6});
+  p.line(318, 234, 318, 300); p.line(530, 234, 530, 300);
+  p.text(486, 156, "406 artigos", "t-s", "middle");
+  p.text(424, 326, "CDC · LGPD · Lei 14.133", "t-s t-soft", "middle");
+}
+
+/* ---------- cena 2 ---------- */
+function scene2(){
+  const svg = $("#s2"); svg.innerHTML = ""; const p = pen(svg, 31);
+  p.line(110, 92, 110, 68); p.circle(110, 62, 12, {fill:"var(--bad)", fillStyle:"solid"});
+  p.rect(70, 92, 80, 62, {fill:"var(--card)", fillStyle:"solid"});
+  p.rect(86, 110, 12, 12, {fill:"var(--ink)", fillStyle:"solid"}); p.rect(122, 110, 12, 12, {fill:"var(--ink)", fillStyle:"solid"});
+  p.path("M90 138 Q110 146 130 138", {strokeWidth:1.6});
+  p.rect(58, 162, 104, 92, {fill:"var(--soft)", fillStyle:"cross-hatch", hachureGap:7});
+  p.line(58, 186, 36, 226); p.line(162, 186, 184, 226);
+  bubble(p, 196, 30, 300, 78, 152, 108, "Claro! Você tem 30 dias\npara exigir o preço anunciado.");
+  const g = p.group({transform:"rotate(-9 330 150)"}); p.into(g);
+  p.rect(256, 128, 156, 44, {stroke:"var(--bad)", strokeWidth:3});
+  p.text(334, 159, "INVENTADO", "t-l t-bad", "middle");
+  p.into(svg);
+  p.path("M420 176 Q450 186 452 200", {strokeWidth:1.8}); p.path("M444 194 L452 202 L458 192", {strokeWidth:1.8});
+  p.rect(386, 206, 140, 98, {fill:"var(--card)", fillStyle:"solid"});
+  p.text(456, 230, "RECLAMAÇÃO", "t-m", "middle");
+  [250, 266, 282].forEach(y => p.line(402, y, 510, y, {strokeWidth:1.2, stroke:"var(--soft)"}));
+  p.text(456, 298, "Procon", "t-s t-bad", "middle");
+}
+
+/* ---------- cena 3: estante ---------- */
+const IDS = DATA.ids;
+const SHELVES = ["lgpd", "cdc", "licitacoes"].map(l => ({lei:l, ids:IDS.filter(i => i.startsWith(l + "-"))}));
+const NAMES = {lgpd:"LGPD · Lei 13.709/2018", cdc:"Código de Defesa do Consumidor · Lei 8.078/1990", licitacoes:"Licitações e Contratos · Lei 14.133/2021"};
+const SW = 4.6, GAP = 0.4, X0 = 10, BLOCK = 110, TAGZ = 28, H = 54;
+const pos = {};
+function drawShelf(){
+  const svg = $("#shelf"); svg.innerHTML = ""; const p = pen(svg, 71);
+  let rnd = 7; const jit = () => { rnd = (rnd * 9301 + 49297) % 233280; return rnd / 233280; };
+  SHELVES.forEach((s, si) => {
+    const top = si * BLOCK + TAGZ;
+    s.ids.forEach((id, i) => {
+      const h = H - jit() * 10, x = X0 + i * (SW + GAP), y = top + (H - h);
+      const r = document.createElementNS(NS, "rect");
+      r.setAttribute("x", x); r.setAttribute("y", y); r.setAttribute("width", SW); r.setAttribute("height", h);
+      r.setAttribute("fill", LAW[s.lei]); r.setAttribute("opacity", ".55"); r.setAttribute("class", "spine"); r.dataset.id = id;
+      const t = document.createElementNS(NS, "title"); t.textContent = id; r.appendChild(t);
+      svg.appendChild(r); pos[id] = {x, y, h, top};
+    });
+    p.line(4, top + H + 2, 994, top + H + 2, {strokeWidth:2.6});
+    p.text(X0, top + H + 20, NAMES[s.lei] + " · " + s.ids.length + " artigos", "t-s t-soft");
+  });
+  const scan = document.createElementNS(NS, "rect");
+  scan.setAttribute("id", "scanbar"); scan.setAttribute("x", 0); scan.setAttribute("y", 0); scan.setAttribute("width", 14); scan.setAttribute("height", 340);
+  scan.setAttribute("fill", "var(--mark)"); scan.setAttribute("opacity", "0"); svg.appendChild(scan);
+  const tags = document.createElementNS(NS, "g"); tags.setAttribute("id", "tags"); svg.appendChild(tags);
+}
+
+const SCEN = [
+  {id:"q038", who:"Atendente da rede de lojas", tab:"Atendimento", sub:"Código do Consumidor"},
+  {id:"q034", who:"Equipe de privacidade de um app", tab:"Privacidade", sub:"LGPD"},
+  {id:"q046", who:"Construtora que vende ao governo", tab:"Licitações", sub:"Lei 14.133"},
+  {id:"q067", who:"Analista de RH", tab:"Fora do escopo", sub:"o sistema sabe que não sabe"},
+  {id:"q040", who:"Atendente de um banco", tab:"Quando falha", sub:"a régua pega"}
+];
+const byId = Object.fromEntries(DATA.cenas.map(c => [c.id, c]));
+const lawOf = id => id.split("-art-")[0];
+const prettyArt = id => { const [l, a] = id.split("-art-"); return ({lgpd:"Lei 13.709/2018", cdc:"Lei 8.078/1990", licitacoes:"Lei 14.133/2021"})[l] + ", art. " + a; };
+
+function verdict(c){
+  const abst = c.r.startsWith("Não encontrei");
+  const found = c.esp.filter(a => c.rec.includes(a));
+  if (!c.esp.length) return {cls:"ok", stamp:"Não sei · correto", small:"assunto fora das 3 leis", why:"Prazo de ação trabalhista está na CLT, que não está na estante. Os 5 artigos trazidos têm pouca semelhança, e o modelo admitiu que não sabe, em vez de inventar."};
+  if (!found.length) return {cls:"bad", stamp:"Falhou", small:"artigo certo ficou na estante", why:`O artigo certo (${prettyArt(c.esp[0])}, em vermelho na estante) não veio entre os 5. O cliente falou "nome negativado", a lei fala em "cadastros e bancos de dados de consumidores". O gabarito pegou a falha. Depois, com um reranker no experimento, esse artigo passou a vir em 1º lugar.`};
+  if (abst) return {cls:"warn", stamp:"Desistiu", small:"a busca achou, o modelo não", why:"O artigo certo veio, mas o modelo disse que não encontrou."};
+  const pos = c.rec.indexOf(found[0]) + 1;
+  return {cls:"ok", stamp:"Conferido", small:`juiz: resposta correta`, why: pos === 1
+    ? `O artigo certo veio em 1º lugar entre 406. O atendente lê a resposta, confere o artigo citado em segundos e responde ao cliente.`
+    : `O artigo certo veio só em ${pos}º lugar, mas veio, e o modelo achou a resposta nele. O MRR existe para medir exatamente esse "veio, mas longe do topo".`};
+}
+
+let cur = 0, timers = [];
+function showScenario(i, animate){
+  cur = i; const s = SCEN[i], c = byId[s.id];
+  document.querySelectorAll(".tab").forEach((b, j) => b.setAttribute("aria-pressed", j === i));
+  $("#d-who").textContent = s.who; $("#d-q").textContent = "“" + c.p + "”";
+  timers.forEach(clearTimeout); timers = [];
+  const svg = $("#shelf"), tags = $("#tags"); tags.innerHTML = "";
+  svg.querySelectorAll(".spine").forEach(r => { r.style.transform = ""; r.setAttribute("opacity", ".55"); r.setAttribute("stroke", "none"); r.setAttribute("fill", LAW[lawOf(r.dataset.id)]); });
+  const hits = $("#d-hits"); hits.innerHTML = "";
+  const card = [$("#d-a"), $("#d-cite"), $("#d-why"), $("#d-stamp")];
+  const v = verdict(c);
+  const fillCard = () => {
+    const a = $("#d-a"); a.textContent = c.r; a.classList.toggle("abst", c.r.startsWith("Não encontrei"));
+    const cited = c.rec.find(id => c.r.includes("art. " + id.split("-art-")[1]) || c.r.includes("art. " + id.split("-art-")[1].replace(/-.*/, "")));
+    const citeEl = $("#d-cite"); citeEl.hidden = c.r.startsWith("Não encontrei"); citeEl.textContent = "fonte: " + (cited ? prettyArt(cited) : prettyArt(c.rec[0]));
+    $("#d-why").textContent = v.why;
+    const st = $("#d-stamp"); st.className = "stamp " + v.cls; st.innerHTML = `${v.stamp}<small>${v.small}</small>`;
+    if (animate && !reduce){ st.classList.remove("drop"); void st.offsetWidth; st.classList.add("drop"); }
+  };
+  const pull = () => {
+    c.rec.forEach((id, k) => {
+      const r = svg.querySelector(`.spine[data-id="${id}"]`); if (!r) return;
+      const P = pos[id];
+      const go = () => {
+        r.style.transform = "translateY(-12px)"; r.setAttribute("opacity", "1"); r.setAttribute("fill", "var(--mark)"); r.setAttribute("stroke", "var(--ink)"); r.setAttribute("stroke-width", "1.2");
+        const cx = P.x + SW/2, cy = P.top - 6 - (k % 2) * 0;
+        const lift = [0, 16, 0, 16, 0][k];
+        const g = document.createElementNS(NS, "g");
+        g.innerHTML = `<line x1="${cx}" y1="${P.y - 12}" x2="${cx}" y2="${cy - lift + 8}" stroke="var(--ink)" stroke-width="1"/><circle cx="${cx}" cy="${cy - lift}" r="9" fill="var(--ink)"/><text x="${cx}" y="${cy - lift + 4}" text-anchor="middle" class="t-s" style="fill:var(--paper);font-weight:700">${k+1}</text>`;
+        tags.appendChild(g);
+        const li = document.createElement("li"); if (c.esp.includes(id)) li.className = "exp";
+        li.innerHTML = `<span class="r">${k+1}</span><span>${id}${c.esp.includes(id) ? " · gabarito" : c.ace.includes(id) ? " · aceito" : ""}</span><span class="s">${c.sc[k].toFixed(3)}</span>`;
+        hits.appendChild(li);
+      };
+      animate && !reduce ? timers.push(setTimeout(go, 900 + k * 260)) : go();
+    });
+    c.esp.filter(id => !c.rec.includes(id)).forEach(id => {
+      const r = svg.querySelector(`.spine[data-id="${id}"]`); if (!r) return;
+      const mark = () => { r.setAttribute("opacity", "1"); r.setAttribute("fill", "var(--bad)");
+        const P = pos[id], g = document.createElementNS(NS, "g");
+        g.innerHTML = `<rect x="${P.x - 4}" y="${P.y - 4}" width="${SW + 8}" height="${P.h + 8}" fill="none" stroke="var(--bad)" stroke-width="2" stroke-dasharray="3 3"/><text x="${P.x + 12}" y="${P.top - 4}" class="t-s t-bad">artigo certo, não veio</text>`;
+        tags.appendChild(g); };
+      animate && !reduce ? timers.push(setTimeout(mark, 2400)) : mark();
+    });
+  };
+  if (animate && !reduce){
+    card.forEach(e => e.style.opacity = ".15");
+    const bar = $("#scanbar"); bar.setAttribute("opacity", ".55");
+    const t0 = performance.now();
+    const step = t => { const k = Math.min(1, (t - t0) / 800); bar.setAttribute("x", 1000 * k - 14); if (k < 1) requestAnimationFrame(step); else bar.setAttribute("opacity", "0"); };
+    requestAnimationFrame(step);
+    pull();
+    timers.push(setTimeout(() => { fillCard(); card.forEach(e => e.style.opacity = ""); }, 2300));
+  } else { pull(); fillCard(); card.forEach(e => e.style.opacity = ""); }
+}
+
+/* ---------- cena 4: boletim ---------- */
+function scene4(){
+  const svg = $("#s4"); svg.innerHTML = ""; const p = pen(svg, 91);
+  person(p, 74, 120, {color:"var(--lic)", mood:"flat"});
+  const g = p.group({transform:"rotate(-24 74 250)"}); p.into(g);
+  p.rect(14, 240, 130, 20, {fill:"var(--mark)", fillStyle:"solid"});
+  for (let i = 0; i < 12; i++) p.line(22 + i * 10, 240, 22 + i * 10, i % 2 ? 247 : 252, {strokeWidth:1.2});
+  p.into(svg);
+  p.text(74, 300, "a régua", "t-s t-soft", "middle");
+  const rows = [
+    ["Acha o artigo certo", "entre os 5 trazidos", .85, "var(--lgpd)"],
+    ["Resposta correta", "média geral", .74, "var(--lgpd)"],
+    ["… em pergunta direta", "com as palavras da lei", 1.0, "var(--ok)"],
+    ["… em linguagem de cliente", "do jeito que se fala", .30, "var(--bad)"],
+    ["Diz \"não sei\" quando deve", "5 de 5 fora do escopo", 1.0, "var(--ok)"]
+  ];
+  const L = 400, W = 220;
+  rows.forEach(([a, b, v, c], i) => {
+    const y = 30 + i * 62;
+    p.text(176, y + 14, a, "t-m"); p.text(176, y + 32, b, "t-s t-soft");
+    p.rect(L, y, W, 26, {stroke:"var(--soft)", strokeWidth:1.2, roughness:.8});
+    p.rect(L, y, Math.max(4, W * v), 26, {fill:c, fillStyle:"hachure", hachureGap:4, stroke:c});
+    p.text(L + W + 8, y + 19, fmt(v), "t-m");
+  });
+  p.path("M300 350 Q360 330 395 290", {strokeWidth:1.8, stroke:"var(--bad)"});
+  p.path("M384 292 L396 288 L394 301", {strokeWidth:1.8, stroke:"var(--bad)"});
+  p.text(176, 366, "o problema mora aqui: o cliente não fala como a lei", "t-m t-bad");
+}
+
+/* ---------- cena 5: experimentos ---------- */
+function scene5(){
+  const svg = $("#s5"); svg.innerHTML = ""; const p = pen(svg, 121);
+  const base = 300, top = 50, sc = base - top, n = EXPER.length, gap = 600 / n, w = Math.min(60, gap - 30);
+  p.line(40, base, 650, base, {strokeWidth:2.2});
+  p.line(40, base - sc, 650, base - sc, {strokeWidth:1, stroke:"var(--grid)", roughness:.4});
+  p.text(36, base - sc + 4, "1,00", "t-mono", "end"); p.text(36, base + 4, "0", "t-mono", "end");
+  EXPER.forEach((e, i) => {
+    const x = 60 + i * gap + (gap - w) / 2, cx = x + w / 2;
+    if (e.v == null){
+      p.rect(x, base - 120, w, 120, {dash:[5, 5], stroke:"var(--soft)", strokeWidth:1.4});
+      p.text(cx, base - 130, "rodando", "t-s t-soft", "middle");
+    } else {
+      const h = e.v * sc, c = e.best ? "var(--ok)" : e.worse ? "var(--bad)" : "var(--lgpd)";
+      p.rect(x, base - h, w, h, {fill:c, fillStyle:e.base ? "cross-hatch" : "hachure", hachureGap:5, stroke:c});
+      p.text(cx, base - h - 8, fmt(e.v), "t-m", "middle");
+    }
+    p.text(cx, base + 22, e.n, "t-s", "middle", 16);
+  });
+  const hy = EXPER.findIndex(e => e.key === "hibrida"), be = EXPER.findIndex(e => e.best);
+  if (hy >= 0){ const cx = 60 + hy * gap + gap / 2, h = EXPER[hy].v * sc; p.text(cx - 10, 36, "a ideia óbvia piorou", "t-m t-bad", "middle"); p.path(`M${cx} 44 Q${cx + 14} ${(44 + base - h) / 2} ${cx + 4} ${base - h - 26}`, {stroke:"var(--bad)", strokeWidth:1.6}); }
+  if (be >= 0){ const cx = 60 + be * gap + gap / 2, h = EXPER[be].v * sc; p.path(`M${cx} ${base - h - 30} l4 9 10 1 -7 7 2 10 -9 -5 -9 5 2 -10 -7 -7 10 -1z`, {fill:"var(--mark)", fillStyle:"solid", strokeWidth:1.4}); }
+  p.text(345, 372, "% das perguntas em que o artigo certo veio entre os 5 (Recall@5)", "t-s t-soft", "middle");
+}
+
+/* ---------- cena 6: dentro de casa ---------- */
+function scene6(){
+  const svg = $("#s6"); svg.innerHTML = ""; const p = pen(svg, 151);
+  p.path("M60 270 L60 110 L190 50 L320 110 L320 270 Z", {fill:"var(--card)", fillStyle:"solid", strokeWidth:2.4});
+  p.rect(110, 150, 70, 90, {fill:"var(--soft)", fillStyle:"hachure", hachureGap:6});
+  [168, 190, 212].forEach(y => p.line(120, y, 170, y, {strokeWidth:1.4}));
+  p.circle(162, 228, 6, {fill:"var(--ok)", fillStyle:"solid", strokeWidth:1});
+  p.text(145, 140, "servidor", "t-s", "middle");
+  p.rect(206, 160, 88, 52, {fill:"var(--mark)", fillStyle:"solid"});
+  p.text(250, 182, "bge-m3", "t-s", "middle"); p.text(250, 202, "gemma3", "t-s", "middle");
+  p.rect(232, 236, 36, 28, {fill:"var(--ink)", fillStyle:"solid"}); p.path("M238 236 L238 224 Q250 210 262 224 L262 236", {strokeWidth:2.4});
+  p.line(20, 270, 360, 270, {strokeWidth:2.6});
+  p.path("M400 120 Q392 92 420 90 Q430 64 462 76 Q486 60 506 84 Q536 84 530 112 Q536 130 506 130 L420 130 Q396 132 400 120 Z", {fill:"var(--card)", fillStyle:"solid"});
+  p.text(466, 114, "API externa", "t-s", "middle");
+  p.path("M330 190 Q370 170 420 140", {dash:[5, 6], strokeWidth:1.6});
+  p.line(360, 150, 390, 180, {stroke:"var(--bad)", strokeWidth:3}); p.line(390, 150, 360, 180, {stroke:"var(--bad)", strokeWidth:3});
+  p.text(440, 210, "a pergunta do cliente", "t-s t-soft", "middle"); p.text(440, 228, "não sai do prédio", "t-m", "middle");
+}
+
+/* ---------- usos ---------- */
+const USES = [
+  ["bank", "Banco", "Normas do Banco Central, contratos de crédito, CDC", "\"Posso cobrar essa tarifa desse cliente?\"", "Erro vira multa do regulador."],
+  ["shield", "Encarregado de dados", "LGPD, política de privacidade, registros de tratamento", "\"O cliente pediu para apagar os dados. Qual o prazo?\"", "Pedidos chegam às centenas; o prazo é curto."],
+  ["dome", "Fornecedor do governo", "Lei 14.133, editais do PNCP, termos de referência", "\"Podemos participar? Qual garantia o edital exige?\"", "Edital mal lido desclassifica a proposta."],
+  ["scale", "Departamento jurídico", "Milhares de contratos da própria empresa", "\"Quais contratos têm multa acima de 10%?\"", "Revisão manual leva semanas."],
+  ["umbrella", "Seguradora", "Condições gerais das apólices", "\"Este sinistro está coberto?\"", "Negar errado vira processo; pagar errado, prejuízo."],
+  ["people", "RH", "Convenção coletiva, políticas internas", "\"Quantos dias de home office posso tirar?\"", "Mesma pergunta, mil vezes por mês."]
+];
+function icon(svg, kind){
+  const p = pen(svg, kind.length * 13);
+  if (kind === "bank"){ p.path("M15 32 L60 10 L105 32 Z", {fill:"var(--lgpd)", fillStyle:"hachure"}); [28, 50, 72, 94].forEach(x => p.line(x - 2, 38, x - 2, 66)); p.line(12, 70, 108, 70, {strokeWidth:2.4}); }
+  if (kind === "shield"){ p.path("M60 8 L96 20 Q96 56 60 74 Q24 56 24 20 Z", {fill:"var(--lgpd)", fillStyle:"hachure"}); p.path("M46 40 L56 50 L76 30", {strokeWidth:3, stroke:"var(--ok)"}); }
+  if (kind === "dome"){ p.path("M30 40 Q60 6 90 40 Z", {fill:"var(--lic)", fillStyle:"hachure"}); p.rect(24, 40, 72, 30); [40, 60, 80].forEach(x => p.line(x, 44, x, 66)); p.line(60, 12, 60, 2); p.path("M60 2 L74 6 L60 10", {fill:"var(--bad)", fillStyle:"solid", strokeWidth:1}); }
+  if (kind === "scale"){ p.line(60, 10, 60, 70, {strokeWidth:2.4}); p.line(24, 22, 96, 22); p.path("M24 22 L12 48 Q24 58 36 48 Z", {fill:"var(--cdc)", fillStyle:"hachure"}); p.path("M96 22 L84 48 Q96 58 108 48 Z", {fill:"var(--cdc)", fillStyle:"hachure"}); p.line(40, 70, 80, 70, {strokeWidth:2.4}); }
+  if (kind === "umbrella"){ p.path("M16 40 Q60 -6 104 40 Q93 32 82 40 Q71 32 60 40 Q49 32 38 40 Q27 32 16 40 Z", {fill:"var(--cdc)", fillStyle:"hachure"}); p.path("M60 40 L60 66 Q60 74 52 72", {strokeWidth:2.2}); }
+  if (kind === "people"){ p.circle(42, 24, 18); p.path("M24 70 Q24 42 42 42 Q60 42 60 70", {fill:"var(--lic)", fillStyle:"hachure"}); p.circle(80, 28, 16); p.path("M64 70 Q64 46 80 46 Q96 46 96 70", {fill:"var(--lgpd)", fillStyle:"hachure"}); }
+}
+function drawUses(){
+  const box = $("#uses"); box.innerHTML = "";
+  USES.forEach(([k, t, corpus, q, why]) => {
+    const d = document.createElement("div"); d.className = "use";
+    d.innerHTML = `<svg viewBox="0 0 120 80" role="img" aria-label="${t}"></svg><h3>${t}</h3><dl><div><dt>Estante</dt><dd>${corpus}</dd></div><div><dt>Pergunta típica</dt><dd>${q}</dd></div><div><dt>Por que medir</dt><dd>${why}</dd></div></dl>`;
+    box.appendChild(d); icon(d.querySelector("svg"), k);
+  });
+}
+
+/* ---------- montar ---------- */
+const tabs = $("#tabs");
+SCEN.forEach((s, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "tab"; b.innerHTML = `${s.tab}<small>${s.sub}</small>`; b.addEventListener("click", () => showScenario(i, true)); tabs.appendChild(b); });
+$("#play").addEventListener("click", () => showScenario(cur, true));
+function drawAll(){ scene1(); scene2(); drawShelf(); showScenario(cur, false); scene4(); scene5(); scene6(); drawUses(); }
+drawAll();
+if (!window.rough) addEventListener("load", () => { if (window.rough) drawAll(); });
+</script>
+</body>
+</html>

@@ -461,10 +461,10 @@ footer{padding-block:40px;border-top:1px solid var(--line);font-size:.85rem;colo
         <thead><tr><th>Experimento da fase 5</th><th>Evidência que motiva</th><th>Hipótese</th></tr></thead>
         <tbody>
           <tr><td><b>Busca híbrida</b> (BM25 + densa) <span class="st part">testada</span></td><td>Termo exato tem recall@5 de 0,60. "Qual o conteúdo do art. 37 da Lei 13.709?" não trouxe o art. 37.</td><td>Contrariada. Recall@5 caiu de 0,85 para 0,56, e termo exato de 0,60 para 0,40: o nome da lei não está no texto indexado. Próximo: busca direta por "art. N da Lei X".</td></tr>
-          <tr><td><b>Reranker</b> <span class="st done">testado</span></td><td>MRR das leigas é 0,53: o artigo vem, mas longe do topo.</td><td>Confirmada nas leigas: MRR de 0,53 para 0,73. Junto com o artigo citado primeiro, recall@5 geral de 0,93 e MRR de 0,86, a melhor linha. Custo: uns 30 s a mais por pergunta em CPU.</td></tr><tr><td><b>Artigo citado primeiro</b> <span class="st done">testado</span></td><td>Perguntas como "o que diz o art. 37 da Lei 13.709?".</td><td>Confirmada: no termo exato, MRR de 0,45 para 0,80.</td></tr>
+          <tr><td><b>Reranker</b> <span class="st done">testado</span></td><td>MRR das leigas é 0,53: o artigo vem, mas longe do topo.</td><td>Confirmada nas leigas: MRR de 0,53 para 0,73. Custo: uns 30 s a mais por pergunta em CPU.</td></tr><tr><td><b>Artigo citado primeiro</b> <span class="st done">testado</span></td><td>Perguntas como "o que diz o art. 37 da Lei 13.709?".</td><td>Confirmada: no termo exato, MRR de 0,45 para 0,80.</td></tr>
           <tr><td><b>Prompt e k</b></td><td>8 abstenções indevidas; na maioria o artigo certo estava nos trechos.</td><td>Instrução menos rígida reduz a desistência sem inventar fora do escopo.</td></tr>
           <tr><td><b>Modelo de embedding</b></td><td>Benchmark MTEB-PT: ranking multilíngue não prevê bem o português.</td><td>O melhor no ranking geral pode não ser o melhor em lei brasileira.</td></tr>
-          <tr><td><b>Chunking</b></td><td>Baseline corta por artigo.</td><td>Por artigo vence blocos fixos de 500 caracteres porque preserva a unidade de sentido.</td></tr>
+          <tr><td><b>Nome da lei no texto indexado</b> <span class="st done">testado</span></td><td>O texto do artigo começa em "Art. 49" mas não diz de qual lei é.</td><td>Confirmada: a densa foi de 0,85 para 0,90 no recall@5, sem custo na hora da pergunta. Somando reranker e artigo citado: recall@5 de 0,94 e MRR de 0,89, a melhor linha.</td></tr><tr><td><b>Chunking</b></td><td>Baseline corta por artigo.</td><td>Por artigo vence blocos fixos de 500 caracteres porque preserva a unidade de sentido.</td></tr>
         </tbody>
       </table>
     </div>
@@ -642,8 +642,8 @@ const PH = [
   ["Gabarito","75 perguntas. Falta validar a maioria.","part","Validando"],
   ["Baseline","Busca densa + LLM local nas 75.","done","Concluída"],
   ["Avaliação","Métricas prontas. Faltam 30 rótulos humanos.","part","Falta rotular"],
-  ["Experimentos","Busca: 7 configurações no dev; melhor recall@5 0,93.","part","Busca feita"],
-  ["Entrega","App em Streamlit, README, demo pública.","todo","A fazer"]
+  ["Experimentos","Busca: 12 configurações no dev; melhor recall@5 0,94.","part","Busca feita"],
+  ["Entrega","App em Streamlit e README prontos; falta demo pública.","part","Em andamento"]
 ];
 const ph = $("#phases");
 PH.forEach(([t, d, c, l], i) => ph.appendChild(el("div", "phase " + c, `<span class="pn">Fase ${i}</span><h3>${t}</h3><span class="st ${c}">${l}</span><p>${d}</p>`)));

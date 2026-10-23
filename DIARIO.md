@@ -11,8 +11,8 @@ Registro do que foi feito em cada fase, em ordem, com os comandos, as decisões 
 | 2. Conjunto ouro | Redigido e revisado por LLM | Validação humana das 75 perguntas |
 | 3. Baseline | Concluída | Nada |
 | 4. Avaliação | Métricas prontas; juiz `gemma3:12b` passou na sonda | Rotulagem humana de 30 respostas e concordância com o juiz |
-| 5. Experimentos | Busca: 7 configurações no `dev` | Cabeçalho no chunk, geração, análise de erros |
-| 6. Entrega | Não iniciada | Tudo |
+| 5. Experimentos | Busca: 12 configurações no `dev` | Geração, análise de erros, rodada no `test` |
+| 6. Entrega | App em Streamlit e README completo | Demo pública e texto de divulgação |
 
 Pendências que dependem de uma pessoa:
 
@@ -353,6 +353,20 @@ Problemas encontrados:
 - Os arquivos de resultado da primeira rodada não tinham as chaves novas da configuração, e a tabela quebrou com `KeyError`. A tabela agora completa cada configuração com os valores padrão, e todos os experimentos foram rodados de novo.
 - O reranker é lento em CPU: 39 perguntas levaram cerca de 19 minutos, uns 30 segundos por pergunta.
 
+### Terceira rodada e app (23 de outubro de 2026)
+
+1. **Reorganização.** A montagem da busca (`montar_pipeline` e as peças) saiu de `experimento.py` para `retrieve.py`, para o app usar o mesmo código dos experimentos. Dois experimentos rodados de novo deram métricas idênticas.
+2. **Cabeçalho no chunk** (`texto_indexado` em `index.py`). O texto indexado ganha lei, apelido, artigo, título e capítulo. Índice próprio, `data/index/artigos_cabecalho.faiss`, gerado por `python -m rag_leis.index --cabecalho` em mais de 10 minutos em CPU.
+3. **Experimentos com cabeçalho:** densa, BM25, híbrida, densa com artigo citado e a combinação com reranker.
+4. **App** (`app.py`). Streamlit com busca rápida (densa com cabeçalho e artigo citado) e completa (mais o reranker), geração opcional e os artigos com link para o Planalto. Testado com `streamlit.testing.v1.AppTest`: com e sem o Ollama no ar, numa pergunta do consumidor e numa fora do escopo.
+
+Resultado: a densa com cabeçalho foi de 0,85 para 0,90 no recall@5, e a combinação de cabeçalho, reranker e artigo citado chegou a 0,94, com MRR de 0,89.
+
+Problemas encontrados:
+
+- Na primeira versão, a mensagem de erro do app sem o Ollama juntava duas frases sem ponto. Corrigido.
+- `use_container_width` está obsoleto no Streamlit 1.66; trocado por `width="stretch"`.
+
 ### Ressalvas
 
 - O gabarito ainda está em validação humana. Se perguntas do `dev` mudarem, basta rodar o comando de novo.
@@ -399,6 +413,9 @@ black --check .
 | `9d42989` | Juiz `gemma3:12b`, arquivos por juiz, correção de memória e métricas novas do `dev` |
 | `9447b94` | CI com ruff, black e pytest |
 | `b2daa43` | BM25, busca híbrida e executor de experimentos (fase 5) |
+| `12af17c` | Busca por referência, híbrida com peso e reranker |
+| `e255cb7` | Cabeçalho da lei no chunk e app em Streamlit |
+| `0427933` | Páginas de apresentação em `docs/apresentacao` |
 
 ## Erros meus durante o trabalho
 

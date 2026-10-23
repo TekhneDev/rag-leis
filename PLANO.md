@@ -19,7 +19,7 @@ Cada ferramenta nova entra no rag-leis como experimento medido, e não como curs
 | 1. Base de engenharia | 1 | GitHub Actions (ruff, black, pytest) | `.github/workflows/ci.yml` e selo no README | O CI passa no GitHub | Feito; falta ver o primeiro run verde |
 | 2. Busca por palavra | 1 | BM25, híbrida com RRF, executor de experimentos | `experiments/*.json`, `results/experimentos/tabela.md` | Cada linha da tabela sai de um comando | Feito |
 | 3. Pendências humanas | 1 a 2 | Validar o gabarito e rotular 30 respostas | `validacao_gold.md` marcado, `rotulos.csv` preenchido | Concordância do juiz de pelo menos 80% | A fazer (só Carla pode fazer) |
-| 4. Melhorar a busca | 2 | Busca por referência ("art. N da Lei X"), híbrida com peso, reranker | Novas linhas na tabela | Hipóteses abaixo testadas | A fazer |
+| 4. Melhorar a busca | 2 | Busca por referência ("art. N da Lei X"), híbrida com peso, reranker | Novas linhas na tabela | Hipóteses abaixo testadas | Feito; falta o teste de chunk com cabeçalho |
 | 5. Melhorar a geração | 1 | Prompt menos rígido e variação de k | Respostas novas julgadas pelo juiz validado | Abstenção indevida medida antes e depois | A fazer; depende da etapa 3 |
 | 6. Ferramentas de avaliação | 1 | Ragas ao lado do juiz próprio; MLflow para os experimentos | Comparação de concordância; runs no MLflow | As duas réguas comparadas com os rótulos humanos | A fazer |
 | 7. Entrega | 1 a 2 | App em Streamlit, README na ordem do roadmap, texto de divulgação | Demo pública | Alguém de fora roda seguindo só o README | A fazer |
@@ -54,9 +54,35 @@ Hipóteses para a etapa 4, cada uma um experimento separado:
 
 Com 5 perguntas de termo exato no `dev`, só uma diferença grande conta como sinal.
 
+## Etapa 4: resultado
+
+Mesmo split `dev`, mesmas 34 perguntas. Comando: `python -m rag_leis.experimento experiments/*.json`.
+
+| Busca | Recall@5 | IC 95% | MRR | Termo exato (R@5 / MRR) | Leiga (R@5 / MRR) |
+| --- | --- | --- | --- | --- | --- |
+| Densa (baseline) | 0,85 | 0,73 a 0,96 | 0,76 | 0,60 / 0,45 | 0,80 / 0,53 |
+| Híbrida, pesos 1 / 0,25 | 0,63 | 0,47 a 0,79 | 0,54 | 0,40 / 0,25 | 0,40 / 0,22 |
+| Densa + artigo citado primeiro | 0,88 | 0,77 a 0,97 | 0,81 | 0,80 / 0,80 | 0,80 / 0,53 |
+| Densa + reranker nos 20 primeiros | 0,90 | 0,79 a 0,97 | 0,80 | 0,60 / 0,40 | 0,90 / 0,73 |
+| Densa + reranker + artigo citado | **0,93** | 0,84 a 1,00 | **0,86** | 0,80 / 0,80 | 0,90 / 0,73 |
+
+O que cada hipótese deu:
+
+1. **Busca por referência: confirmada.** No termo exato, o MRR foi de 0,45 para 0,80. Sobra a q063 ("inversão do ônus da prova"), que não cita número de artigo.
+2. **Híbrida com peso: contrariada.** Mesmo com o BM25 valendo um quarto, ela fica abaixo da densa. Com c = 60 no RRF, a diferença entre o 1º e o 10º lugar da densa é pequena, e o BM25 basta para reordenar.
+3. **Cabeçalho no chunk:** não testado ainda.
+4. **Reranker: confirmada em parte.** Ele melhorou mais as leigas (MRR de 0,53 para 0,73) do que o termo exato, onde piorou um pouco. A q040 ("nome negativado") saiu de fora do top 5 para o 1º lugar; em troca, a q028 saiu do 1º lugar para fora do top 5.
+
+Reranker e referência se completam: um ajuda nas leigas, o outro no termo exato, e juntos dão a melhor linha. Duas ressalvas:
+
+- **Custo.** Com o reranker, cada pergunta leva cerca de 30 segundos a mais em CPU (39 perguntas em 19 minutos). Num atendimento real, isso pede GPU ou um reranker menor.
+- **Escolha feita no dev.** A melhor configuração foi escolhida olhando o `dev`, então seu número é otimista. O valor para reportar sai do `test`, rodado uma única vez, junto com o baseline, no fim do projeto.
+
+Próximo passo da busca: o cabeçalho no chunk. Depois, a geração (etapa 5), que depende do juiz validado.
+
 ## Como contar em entrevista
 
 1. Montei um RAG sobre três leis brasileiras, com 406 artigos e um gabarito de 75 perguntas escrito antes de existir qualquer busca, dividido em dev e test.
-2. A busca densa tem recall@5 de 0,85, mas cai para 0,60 nas perguntas de termo exato. Testei busca híbrida esperando ganhar nesse tipo, e ela piorou: o nome da lei não estava no texto indexado e o número do artigo aparecia em remissões.
+2. A busca densa tem recall@5 de 0,85, mas cai para 0,60 nas perguntas de termo exato. Testei busca híbrida esperando ganhar nesse tipo, e ela piorou. O que funcionou foi combinar um reranker, que ajudou nas perguntas leigas, com uma regra que traz primeiro o artigo citado pelo número: recall@5 de 0,93 no dev, ao custo de 30 segundos a mais por pergunta em CPU.
 3. Descartei meu primeiro juiz LLM porque, numa sonda com respostas falsas de propósito, ele aprovou duas de três.
 4. Em 8 de 34 perguntas o sistema disse que não sabia, embora o artigo certo estivesse nos trechos. Medir busca e geração separadamente mostrou que o problema estava na geração, e não na busca.

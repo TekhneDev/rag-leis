@@ -3,6 +3,13 @@
     "k": 5,
     "profundidade": 50,
     "rrf_c": 60,
+    "pesos": [
+      1.0,
+      1.0
+    ],
+    "referencia": false,
+    "reranker": null,
+    "candidatos": 20,
     "split": "dev",
     "busca": "hibrida",
     "nome": "busca_hibrida"

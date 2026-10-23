@@ -1,6 +1,6 @@
 import pytest
 
-from rag_leis.retrieve import BuscadorBM25, fundir_rrf, tokenizar
+from rag_leis.retrieve import BuscadorBM25, artigos_citados, fundir_rrf, tokenizar
 
 
 def test_tokenizar_tira_acento_e_stopwords() -> None:
@@ -30,3 +30,26 @@ def test_rrf_premia_quem_aparece_nas_duas_listas() -> None:
 
 def test_rrf_pontuacao_do_primeiro_lugar() -> None:
     assert fundir_rrf([["a"]], c=60) == [("a", pytest.approx(1 / 61))]
+
+
+def test_rrf_com_peso_favorece_a_primeira_lista() -> None:
+    fundido = fundir_rrf([["a", "b"], ["b", "a"]], pesos=[1.0, 0.25])
+    assert [artigo for artigo, _ in fundido] == ["a", "b"]
+
+
+IDS = {"lgpd-art-7", "cdc-art-7", "cdc-art-42-A", "licitacoes-art-75"}
+
+
+def test_artigos_citados_respeita_a_lei_nomeada() -> None:
+    assert artigos_citados("O que diz o art. 75 da Lei 14.133?", IDS) == [
+        "licitacoes-art-75"
+    ]
+    assert artigos_citados("O art. 42-A da Lei 8.078/1990", IDS) == ["cdc-art-42-A"]
+
+
+def test_artigos_citados_sem_lei_vale_para_todas() -> None:
+    assert artigos_citados("O que diz o artigo 7º?", IDS) == ["lgpd-art-7", "cdc-art-7"]
+
+
+def test_artigos_citados_ignora_pergunta_sem_numero() -> None:
+    assert artigos_citados("Comprei e me arrependi, posso devolver?", IDS) == []

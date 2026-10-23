@@ -76,17 +76,55 @@ class BuscadorBM25:
         ]
 
 
-def fundir_rrf(rankings: list[list[str]], c: int = 60) -> list[tuple[str, float]]:
-    """Reciprocal Rank Fusion: soma 1 / (c + posição) de cada artigo em cada ranking.
+def fundir_rrf(
+    rankings: list[list[str]], c: int = 60, pesos: list[float] | None = None
+) -> list[tuple[str, float]]:
+    """Reciprocal Rank Fusion: soma peso / (c + posição) de cada artigo em cada ranking.
 
     Junta rankings de escalas diferentes (cosseno e BM25) sem calibrar as pontuações.
-    O c = 60 é o valor do artigo original (Cormack et al., 2009).
+    O c = 60 é o valor do artigo original (Cormack et al., 2009). Sem pesos, todos valem 1.
     """
+    pesos = [1.0] * len(rankings) if pesos is None else pesos
     soma: dict[str, float] = {}
-    for ranking in rankings:
+    for ranking, peso in zip(rankings, pesos, strict=True):
         for posicao, artigo in enumerate(ranking, start=1):
-            soma[artigo] = soma.get(artigo, 0.0) + 1 / (c + posicao)
+            soma[artigo] = soma.get(artigo, 0.0) + peso / (c + posicao)
     return sorted(soma.items(), key=lambda par: -par[1])
+
+
+# Como cada lei costuma ser chamada numa pergunta, já sem acento e em minúsculas.
+NOMES_DAS_LEIS = {
+    "lgpd": ("13.709", "13709", "lgpd", "lei geral de protecao de dados"),
+    "cdc": ("8.078", "8078", "cdc", "codigo de defesa do consumidor"),
+    "licitacoes": ("14.133", "14133", "lei de licitacoes", "licitacoes e contratos"),
+}
+_CITACAO = re.compile(r"\bart(?:igo)?s?\.?\s*(\d+)\s*[ºo°]?(?:\s*-\s*([a-z])\b)?")
+
+
+def _sem_acento(texto: str) -> str:
+    texto = unicodedata.normalize("NFKD", texto.lower())
+    return "".join(c for c in texto if not unicodedata.combining(c))
+
+
+def artigos_citados(pergunta: str, ids: set[str]) -> list[str]:
+    """Ids dos artigos que a pergunta cita pelo número, como em "art. 75 da Lei 14.133".
+
+    Se a pergunta nomeia uma ou mais leis, só elas contam; se não nomeia nenhuma,
+    o número vale para as três. Devolve só ids que existem no corpus.
+    """
+    texto = _sem_acento(pergunta)
+    leis = [
+        lei for lei, nomes in NOMES_DAS_LEIS.items() if any(n in texto for n in nomes)
+    ]
+    leis = leis or list(NOMES_DAS_LEIS)
+    citados = []
+    for numero, letra in _CITACAO.findall(texto):
+        sufixo = f"{numero}-{letra.upper()}" if letra else numero
+        for lei in leis:
+            artigo = f"{lei}-art-{sufixo}"
+            if artigo in ids and artigo not in citados:
+                citados.append(artigo)
+    return citados
 
 
 @lru_cache(maxsize=1)

@@ -11,7 +11,7 @@ Registro do que foi feito em cada fase, em ordem, com os comandos, as decisões 
 | 2. Conjunto ouro | Redigido e revisado por LLM | Validação humana das 75 perguntas |
 | 3. Baseline | Concluída | Nada |
 | 4. Avaliação | Métricas prontas; juiz `gemma3:12b` passou na sonda | Rotulagem humana de 30 respostas e concordância com o juiz |
-| 5. Experimentos | Iniciada: densa, BM25 e híbrida no `dev` | Busca por referência, híbrida com peso, reranker, geração |
+| 5. Experimentos | Busca: 7 configurações no `dev` | Cabeçalho no chunk, geração, análise de erros |
 | 6. Entrega | Não iniciada | Tudo |
 
 Pendências que dependem de uma pessoa:
@@ -339,6 +339,20 @@ python -m rag_leis.experimento experiments/*.json
 
 A busca densa reproduziu exatamente os números do baseline (recall@5 0,85, MRR 0,76), o que confere o executor. O BM25 teve recall@5 de 0,50 e a híbrida, 0,56. A hipótese de que a híbrida ganharia nas perguntas de termo exato foi contrariada: caiu de 0,60 para 0,40. A análise está no [plano](PLANO.md#etapa-2-o-que-a-primeira-rodada-mostrou).
 
+### Segunda rodada (23 de outubro de 2026)
+
+1. **Busca por referência** (`artigos_citados` em `retrieve.py`). Uma expressão regular acha "art. N" ou "artigo N-A" na pergunta, e o nome ou número da lei restringe a lei. Sem lei nomeada, o número vale para as três. Os artigos citados vão para a frente e a busca completa o resto.
+2. **Híbrida com peso.** `fundir_rrf` ganhou pesos; testados 1 / 0,5 e 1 / 0,25.
+3. **Reranker.** `BAAI/bge-reranker-v2-m3` via `CrossEncoder`, em CPU, reordena os 20 primeiros da densa. Corta cada artigo em 512 tokens.
+4. **Reranker com referência**, para juntar os ganhos dos dois.
+
+Resultado no `dev`: a melhor configuração foi reranker com referência, com recall@5 de 0,93 e MRR de 0,86, contra 0,85 e 0,76 do baseline. A híbrida com peso continuou abaixo da densa. Detalhes por tipo e ressalvas no [plano](PLANO.md#etapa-4-resultado).
+
+Problemas encontrados:
+
+- Os arquivos de resultado da primeira rodada não tinham as chaves novas da configuração, e a tabela quebrou com `KeyError`. A tabela agora completa cada configuração com os valores padrão, e todos os experimentos foram rodados de novo.
+- O reranker é lento em CPU: 39 perguntas levaram cerca de 19 minutos, uns 30 segundos por pergunta.
+
 ### Ressalvas
 
 - O gabarito ainda está em validação humana. Se perguntas do `dev` mudarem, basta rodar o comando de novo.
@@ -383,6 +397,8 @@ black --check .
 | `cdab1f7` | Métricas do baseline no `dev` e a sonda do juiz |
 | `d2005e9` | Diário do projeto com os passos das fases 0 a 4 |
 | `9d42989` | Juiz `gemma3:12b`, arquivos por juiz, correção de memória e métricas novas do `dev` |
+| `9447b94` | CI com ruff, black e pytest |
+| `b2daa43` | BM25, busca híbrida e executor de experimentos (fase 5) |
 
 ## Erros meus durante o trabalho
 

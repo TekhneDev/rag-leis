@@ -17,7 +17,7 @@ Em construção. O sistema responde perguntas de ponta a ponta com busca densa e
 | 2. Conjunto ouro | `gold.jsonl` com 60 a 80 perguntas | Redigido; falta a validação manual das perguntas |
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | Concluída |
 | 4. Avaliação | `evaluate.py` e números do baseline | Métricas prontas; o juiz `gemma3:12b` passou na sonda e falta a rotulagem humana |
-| 5. Experimentos | Tabela de resultados e análise de erros | Iniciada: densa, BM25 e híbrida medidas no `dev` |
+| 5. Experimentos | Tabela de resultados e análise de erros | Busca: 7 configurações medidas no `dev`; geração a fazer |
 | 6. Entrega | App e demo | A fazer |
 
 O plano completo, com conceitos, métricas e armadilhas, está em [Roadmap RAG jurídico com avaliação](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md). O que foi feito em cada fase, passo a passo, com os problemas encontrados, está no [diário do projeto](DIARIO.md). Os próximos passos, ligados ao que o mercado de trabalho pede, estão no [plano](PLANO.md).
@@ -106,15 +106,18 @@ Cada experimento é um arquivo em `experiments/` que muda uma peça em relação
 python -m rag_leis.experimento experiments/*.json   # roda no dev e refaz a tabela
 ```
 
-Resultados em `results/experimentos/tabela.md`. Primeira rodada, no `dev`:
+Resultados em `results/experimentos/tabela.md`. Principais linhas, no `dev`:
 
 | Busca | Recall@5 | MRR | Recall@5 em termo exato | Recall@5 em leiga |
 | --- | --- | --- | --- | --- |
 | Densa (baseline) | 0,85 | 0,76 | 0,60 | 0,80 |
 | BM25 | 0,50 | 0,35 | 0,60 | 0,00 |
 | Híbrida (RRF, pesos iguais) | 0,56 | 0,45 | 0,40 | 0,20 |
+| Densa + artigo citado primeiro | 0,88 | 0,81 | 0,80 | 0,80 |
+| Densa + reranker | 0,90 | 0,80 | 0,60 | 0,90 |
+| Densa + reranker + artigo citado | 0,93 | 0,86 | 0,80 | 0,90 |
 
-A busca híbrida piorou em vez de melhorar, inclusive nas perguntas de termo exato. A análise e as próximas hipóteses estão no [plano](PLANO.md#etapa-2-o-que-a-primeira-rodada-mostrou).
+A busca híbrida piorou em vez de melhorar. O reranker (`BAAI/bge-reranker-v2-m3`, sobre os 20 primeiros da densa) ajudou nas perguntas leigas, e trazer primeiro o artigo que a pergunta cita pelo número ajudou no termo exato. A melhor linha foi escolhida olhando o `dev`, então é otimista; o número final sai do `test`, uma única vez. Com o reranker, cada pergunta leva cerca de 30 segundos a mais em CPU. A análise está no [plano](PLANO.md#etapa-4-resultado).
 
 ## Estrutura
 
@@ -128,7 +131,7 @@ rag-leis/
     ingest.py        # baixar e limpar
     chunk.py         # cortar por artigo
     index.py         # embeddings e índice vetorial
-    retrieve.py      # busca densa, BM25 e fusão RRF
+    retrieve.py      # busca densa, BM25, fusão RRF e artigos citados pelo número
     generate.py      # prompt e chamada ao LLM
     responder.py     # uma pergunta de ponta a ponta
     baseline.py      # conjunto ouro inteiro

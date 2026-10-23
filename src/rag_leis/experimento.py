@@ -26,45 +26,110 @@ from rag_leis.evaluate import (
 RESULTADOS = Path("results/experimentos")
 TIPOS = ("geral", "direta", "leiga", "varios_artigos", "termo_exato")
 BUSCAS = ("densa", "bm25", "hibrida")
+PADRAO = {
+    "k": 5,
+    "profundidade": 50,
+    "rrf_c": 60,
+    "pesos": [1.0, 1.0],
+    "referencia": False,
+    "reranker": None,
+    "candidatos": 20,
+    "split": "dev",
+}
 
 
 def ler_config(caminho: Path) -> dict:
-    config = {"k": 5, "profundidade": 50, "rrf_c": 60, "split": "dev"}
-    config |= json.loads(caminho.read_text(encoding="utf-8"))
+    config = PADRAO | json.loads(caminho.read_text(encoding="utf-8"))
     config["nome"] = caminho.stem
     if config["busca"] not in BUSCAS:
         raise ValueError(f"busca deve ser uma de {BUSCAS}, veio {config['busca']!r}")
     return config
 
 
+def rotulo(config: dict) -> str:
+    """Descrição curta do que mudou em relação à busca pura, para a tabela."""
+    partes = [config["busca"]]
+    if config["busca"] == "hibrida" and config["pesos"] != PADRAO["pesos"]:
+        partes[0] += " (pesos " + " / ".join(f"{p:g}" for p in config["pesos"]) + ")"
+    if config["reranker"]:
+        partes.append(f"reranker nos {config['candidatos']} primeiros")
+    if config["referencia"]:
+        partes.append("artigo citado primeiro")
+    return " + ".join(partes)
+
+
 def montar_busca(config: dict):
-    """Devolve uma função pergunta -> lista de ids, do mais para o menos relevante."""
+    """Devolve uma função (pergunta, n) -> n ids, do mais para o menos relevante."""
     # Imports aqui dentro: a busca densa carrega o modelo de embedding, que é pesado.
     from rag_leis.retrieve import BuscadorBM25, fundir_rrf
 
     if config["busca"] == "bm25":
         bm25 = BuscadorBM25()
-        return lambda pergunta: [a["id"] for a in bm25.buscar(pergunta, config["k"])]
+        return lambda pergunta, n: [a["id"] for a in bm25.buscar(pergunta, n)]
 
     from rag_leis.retrieve import Buscador
 
     densa = Buscador()
     if config["busca"] == "densa":
-        return lambda pergunta: [a["id"] for a in densa.buscar(pergunta, config["k"])]
+        return lambda pergunta, n: [a["id"] for a in densa.buscar(pergunta, n)]
 
     bm25 = BuscadorBM25()
 
-    def hibrida(pergunta: str) -> list[str]:
-        # Cada busca traz uma lista mais funda que k, para a fusão ter de onde escolher.
+    def hibrida(pergunta: str, n: int) -> list[str]:
+        # Cada busca traz uma lista mais funda que n, para a fusão ter de onde escolher.
+        profundidade = max(n, config["profundidade"])
         rankings = [
-            [a["id"] for a in buscador.buscar(pergunta, config["profundidade"])]
+            [a["id"] for a in buscador.buscar(pergunta, profundidade)]
             for buscador in (densa, bm25)
         ]
-        return [artigo for artigo, _ in fundir_rrf(rankings, config["rrf_c"])][
-            : config["k"]
-        ]
+        fundido = fundir_rrf(rankings, config["rrf_c"], config["pesos"])
+        return [artigo for artigo, _ in fundido][:n]
 
     return hibrida
+
+
+def com_reranker(buscar, config: dict):
+    """Reordena os primeiros candidatos com um cross-encoder, que lê pergunta e artigo juntos."""
+    from sentence_transformers import CrossEncoder
+
+    from rag_leis.index import carregar_corpus
+
+    textos = {registro["id"]: registro["texto"] for registro in carregar_corpus()}
+    modelo = CrossEncoder(config["reranker"], device="cpu", max_length=512)
+
+    def reordenar(pergunta: str, n: int) -> list[str]:
+        candidatos = buscar(pergunta, max(n, config["candidatos"]))
+        notas = modelo.predict(
+            [(pergunta, textos[c]) for c in candidatos], batch_size=4
+        )
+        ordem = sorted(zip(candidatos, notas, strict=True), key=lambda par: -par[1])
+        return [artigo for artigo, _ in ordem][:n]
+
+    return reordenar
+
+
+def com_referencia(buscar):
+    """Põe na frente os artigos que a pergunta cita pelo número e completa com a busca."""
+    from rag_leis.index import carregar_corpus
+    from rag_leis.retrieve import artigos_citados
+
+    ids = {registro["id"] for registro in carregar_corpus()}
+
+    def buscar_citados_primeiro(pergunta: str, n: int) -> list[str]:
+        citados = artigos_citados(pergunta, ids)
+        resto = [a for a in buscar(pergunta, n + len(citados)) if a not in citados]
+        return (citados + resto)[:n]
+
+    return buscar_citados_primeiro
+
+
+def montar_pipeline(config: dict):
+    buscar = montar_busca(config)
+    if config["reranker"]:
+        buscar = com_reranker(buscar, config)
+    if config["referencia"]:
+        buscar = com_referencia(buscar)
+    return lambda pergunta: buscar(pergunta, config["k"])
 
 
 def medir_busca(gold: list[dict], recuperados: dict[str, list[str]]) -> list[dict]:
@@ -85,7 +150,7 @@ def medir_busca(gold: list[dict], recuperados: dict[str, list[str]]) -> list[dic
 
 def rodar(config: dict) -> dict:
     gold = [item for item in _ler(GOLD) if item["split"] == config["split"]]
-    buscar = montar_busca(config)
+    buscar = montar_pipeline(config)
     recuperados = {}
     for item in gold:
         recuperados[item["id"]] = buscar(item["pergunta"])
@@ -121,23 +186,23 @@ def escrever_tabela() -> Path:
         "",
         "## Geral",
         "",
-        "| Experimento | Busca | Recall@1 | Recall@3 | Recall@5 | IC 95% do Recall@5 | MRR |",
+        "| Experimento | Configuração | Recall@1 | Recall@3 | Recall@5 | IC 95% do Recall@5 | MRR |",
         "| --- | --- | --- | --- | --- | --- | --- |",
     ]
     for r in resultados:
-        m, c = r["metricas"], r["config"]
+        m, c = r["metricas"], PADRAO | r["config"]
         baixo, alto = (
             f"{v:.2f}".replace(".", ",") for v in m["geral"]["recall@5"]["ic95"]
         )
         linhas.append(
-            f"| {c['nome']} | {c['busca']} | {_celula(m, 'geral', 'recall@1')} "
+            f"| {c['nome']} | {rotulo(c)} | {_celula(m, 'geral', 'recall@1')} "
             f"| {_celula(m, 'geral', 'recall@3')} | {_celula(m, 'geral', 'recall@5')} "
             f"| {baixo} a {alto} | {_celula(m, 'geral', 'mrr')} |"
         )
-    for metrica, rotulo in (("recall@5", "Recall@5"), ("mrr", "MRR")):
+    for metrica, titulo in (("recall@5", "Recall@5"), ("mrr", "MRR")):
         linhas += [
             "",
-            f"## {rotulo} por tipo de pergunta",
+            f"## {titulo} por tipo de pergunta",
             "",
             "| Experimento | " + " | ".join(TIPOS) + " |",
             "| --- |" + " --- |" * len(TIPOS),

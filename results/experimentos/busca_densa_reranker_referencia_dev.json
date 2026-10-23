@@ -1,0 +1,504 @@
+{
+  "config": {
+    "k": 5,
+    "profundidade": 50,
+    "rrf_c": 60,
+    "pesos": [
+      1.0,
+      1.0
+    ],
+    "referencia": true,
+    "reranker": "BAAI/bge-reranker-v2-m3",
+    "candidatos": 20,
+    "split": "dev",
+    "busca": "densa",
+    "nome": "busca_densa_reranker_referencia"
+  },
+  "metricas": {
+    "geral": {
+      "acerto@5": {
+        "media": 1.0,
+        "ic95": [
+          1.0,
+          1.0
+        ],
+        "n": 34
+      },
+      "mrr": {
+        "media": 0.858,
+        "ic95": [
+          0.755,
+          0.951
+        ],
+        "n": 34
+      },
+      "recall@1": {
+        "media": 0.735,
+        "ic95": [
+          0.588,
+          0.868
+        ],
+        "n": 34
+      },
+      "recall@3": {
+        "media": 0.926,
+        "ic95": [
+          0.838,
+          1.0
+        ],
+        "n": 34
+      },
+      "recall@5": {
+        "media": 0.926,
+        "ic95": [
+          0.838,
+          1.0
+        ],
+        "n": 34
+      }
+    },
+    "direta": {
+      "acerto@5": {
+        "media": 1.0,
+        "ic95": [
+          1.0,
+          1.0
+        ],
+        "n": 14
+      },
+      "mrr": {
+        "media": 0.952,
+        "ic95": [
+          0.857,
+          1.0
+        ],
+        "n": 14
+      },
+      "recall@1": {
+        "media": 0.929,
+        "ic95": [
+          0.786,
+          1.0
+        ],
+        "n": 14
+      },
+      "recall@3": {
+        "media": 1.0,
+        "ic95": [
+          1.0,
+          1.0
+        ],
+        "n": 14
+      },
+      "recall@5": {
+        "media": 1.0,
+        "ic95": [
+          1.0,
+          1.0
+        ],
+        "n": 14
+      }
+    },
+    "leiga": {
+      "acerto@5": {
+        "media": 1.0,
+        "ic95": [
+          1.0,
+          1.0
+        ],
+        "n": 10
+      },
+      "mrr": {
+        "media": 0.733,
+        "ic95": [
+          0.5,
+          0.95
+        ],
+        "n": 10
+      },
+      "recall@1": {
+        "media": 0.6,
+        "ic95": [
+          0.3,
+          0.9
+        ],
+        "n": 10
+      },
+      "recall@3": {
+        "media": 0.9,
+        "ic95": [
+          0.7,
+          1.0
+        ],
+        "n": 10
+      },
+      "recall@5": {
+        "media": 0.9,
+        "ic95": [
+          0.7,
+          1.0
+        ],
+        "n": 10
+      }
+    },
+    "varios_artigos": {
+      "acerto@5": {
+        "media": 1.0,
+        "ic95": [
+          1.0,
+          1.0
+        ],
+        "n": 5
+      },
+      "mrr": {
+        "media": 0.9,
+        "ic95": [
+          0.7,
+          1.0
+        ],
+        "n": 5
+      },
+      "recall@1": {
+        "media": 0.4,
+        "ic95": [
+          0.2,
+          0.5
+        ],
+        "n": 5
+      },
+      "recall@3": {
+        "media": 0.9,
+        "ic95": [
+          0.7,
+          1.0
+        ],
+        "n": 5
+      },
+      "recall@5": {
+        "media": 0.9,
+        "ic95": [
+          0.7,
+          1.0
+        ],
+        "n": 5
+      }
+    },
+    "termo_exato": {
+      "acerto@5": {
+        "media": 1.0,
+        "ic95": [
+          1.0,
+          1.0
+        ],
+        "n": 5
+      },
+      "mrr": {
+        "media": 0.8,
+        "ic95": [
+          0.4,
+          1.0
+        ],
+        "n": 5
+      },
+      "recall@1": {
+        "media": 0.8,
+        "ic95": [
+          0.4,
+          1.0
+        ],
+        "n": 5
+      },
+      "recall@3": {
+        "media": 0.8,
+        "ic95": [
+          0.4,
+          1.0
+        ],
+        "n": 5
+      },
+      "recall@5": {
+        "media": 0.8,
+        "ic95": [
+          0.4,
+          1.0
+        ],
+        "n": 5
+      }
+    }
+  },
+  "recuperados": {
+    "q001": [
+      "lgpd-art-1",
+      "lgpd-art-50",
+      "lgpd-art-55-J",
+      "lgpd-art-3",
+      "lgpd-art-58-B"
+    ],
+    "q003": [
+      "lgpd-art-6",
+      "lgpd-art-50",
+      "lgpd-art-46",
+      "lgpd-art-49",
+      "lgpd-art-4"
+    ],
+    "q005": [
+      "lgpd-art-8",
+      "lgpd-art-9",
+      "lgpd-art-7",
+      "lgpd-art-19",
+      "lgpd-art-27"
+    ],
+    "q007": [
+      "lgpd-art-42",
+      "lgpd-art-44",
+      "lgpd-art-43",
+      "lgpd-art-31",
+      "lgpd-art-50"
+    ],
+    "q009": [
+      "cdc-art-56",
+      "licitacoes-art-156",
+      "lgpd-art-52",
+      "cdc-art-59",
+      "cdc-art-65"
+    ],
+    "q011": [
+      "cdc-art-3",
+      "cdc-art-54-D",
+      "cdc-art-44",
+      "cdc-art-14",
+      "cdc-art-10"
+    ],
+    "q013": [
+      "cdc-art-27",
+      "cdc-art-26",
+      "cdc-art-12",
+      "cdc-art-14",
+      "cdc-art-25"
+    ],
+    "q015": [
+      "cdc-art-37",
+      "cdc-art-60",
+      "cdc-art-67",
+      "cdc-art-66",
+      "cdc-art-68"
+    ],
+    "q017": [
+      "cdc-art-52",
+      "licitacoes-art-162",
+      "cdc-art-54-B",
+      "cdc-art-57",
+      "cdc-art-54-D"
+    ],
+    "q019": [
+      "licitacoes-art-17",
+      "licitacoes-art-62",
+      "licitacoes-art-18",
+      "licitacoes-art-71",
+      "licitacoes-art-53"
+    ],
+    "q021": [
+      "licitacoes-art-33",
+      "licitacoes-art-36",
+      "licitacoes-art-39",
+      "licitacoes-art-35",
+      "licitacoes-art-55"
+    ],
+    "q023": [
+      "licitacoes-art-98",
+      "licitacoes-art-96",
+      "licitacoes-art-99",
+      "licitacoes-art-102",
+      "licitacoes-art-58"
+    ],
+    "q025": [
+      "licitacoes-art-156",
+      "licitacoes-art-155",
+      "licitacoes-art-178",
+      "licitacoes-art-163",
+      "licitacoes-art-158"
+    ],
+    "q027": [
+      "licitacoes-art-165",
+      "licitacoes-art-55",
+      "licitacoes-art-164",
+      "licitacoes-art-39",
+      "licitacoes-art-56"
+    ],
+    "q028": [
+      "lgpd-art-60",
+      "lgpd-art-18",
+      "lgpd-art-7",
+      "lgpd-art-15",
+      "lgpd-art-19"
+    ],
+    "q030": [
+      "lgpd-art-14",
+      "lgpd-art-11",
+      "lgpd-art-7",
+      "lgpd-art-9",
+      "lgpd-art-18"
+    ],
+    "q032": [
+      "cdc-art-43",
+      "lgpd-art-48",
+      "cdc-art-73",
+      "cdc-art-44",
+      "lgpd-art-42"
+    ],
+    "q034": [
+      "lgpd-art-18",
+      "lgpd-art-50",
+      "lgpd-art-41",
+      "lgpd-art-55-J",
+      "lgpd-art-9"
+    ],
+    "q036": [
+      "cdc-art-39",
+      "cdc-art-18",
+      "cdc-art-51",
+      "cdc-art-13",
+      "cdc-art-40"
+    ],
+    "q038": [
+      "cdc-art-35",
+      "cdc-art-39",
+      "cdc-art-66",
+      "cdc-art-51",
+      "cdc-art-13"
+    ],
+    "q040": [
+      "cdc-art-43",
+      "licitacoes-art-84",
+      "cdc-art-104-B",
+      "cdc-art-72",
+      "cdc-art-73"
+    ],
+    "q042": [
+      "cdc-art-54-C",
+      "cdc-art-54-D",
+      "cdc-art-54-G",
+      "cdc-art-33",
+      "cdc-art-39"
+    ],
+    "q044": [
+      "licitacoes-art-94",
+      "licitacoes-art-74",
+      "licitacoes-art-8",
+      "licitacoes-art-21",
+      "licitacoes-art-176"
+    ],
+    "q046": [
+      "licitacoes-art-54",
+      "licitacoes-art-175",
+      "licitacoes-art-87",
+      "licitacoes-art-25",
+      "licitacoes-art-176"
+    ],
+    "q047": [
+      "lgpd-art-11",
+      "lgpd-art-7",
+      "lgpd-art-14",
+      "lgpd-art-9",
+      "lgpd-art-5"
+    ],
+    "q049": [
+      "lgpd-art-41",
+      "lgpd-art-23",
+      "lgpd-art-5",
+      "lgpd-art-50",
+      "lgpd-art-6"
+    ],
+    "q051": [
+      "cdc-art-35",
+      "cdc-art-41",
+      "cdc-art-40",
+      "cdc-art-20",
+      "cdc-art-54-D"
+    ],
+    "q053": [
+      "licitacoes-art-95",
+      "licitacoes-art-75",
+      "licitacoes-art-74",
+      "licitacoes-art-90",
+      "licitacoes-art-191"
+    ],
+    "q055": [
+      "licitacoes-art-107",
+      "licitacoes-art-106",
+      "licitacoes-art-98",
+      "licitacoes-art-108",
+      "licitacoes-art-135"
+    ],
+    "q057": [
+      "licitacoes-art-75",
+      "cdc-art-75",
+      "licitacoes-art-184-A",
+      "lgpd-art-55-J",
+      "licitacoes-art-155"
+    ],
+    "q059": [
+      "licitacoes-art-193",
+      "licitacoes-art-191",
+      "lgpd-art-1",
+      "licitacoes-art-133",
+      "licitacoes-art-194"
+    ],
+    "q061": [
+      "cdc-art-51",
+      "lgpd-art-51",
+      "cdc-art-1",
+      "cdc-art-54-B",
+      "cdc-art-54-A"
+    ],
+    "q063": [
+      "cdc-art-51",
+      "lgpd-art-42",
+      "cdc-art-38",
+      "cdc-art-54-C",
+      "cdc-art-37"
+    ],
+    "q065": [
+      "lgpd-art-37",
+      "cdc-art-37",
+      "lgpd-art-1",
+      "lgpd-art-7",
+      "lgpd-art-18"
+    ],
+    "q067": [
+      "licitacoes-art-166",
+      "cdc-art-104",
+      "licitacoes-art-123",
+      "licitacoes-art-157",
+      "licitacoes-art-167"
+    ],
+    "q069": [
+      "cdc-art-77",
+      "cdc-art-65",
+      "cdc-art-66",
+      "cdc-art-57",
+      "cdc-art-78"
+    ],
+    "q071": [
+      "licitacoes-art-167",
+      "cdc-art-49",
+      "licitacoes-art-137",
+      "licitacoes-art-123",
+      "licitacoes-art-165"
+    ],
+    "q073": [
+      "lgpd-art-65",
+      "cdc-art-118",
+      "licitacoes-art-123",
+      "licitacoes-art-176",
+      "cdc-art-114"
+    ],
+    "q075": [
+      "lgpd-art-60",
+      "lgpd-art-40",
+      "lgpd-art-19",
+      "cdc-art-73",
+      "lgpd-art-37"
+    ]
+  }
+}

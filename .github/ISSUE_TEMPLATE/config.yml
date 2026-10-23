@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Falha de segurança
+    url: https://github.com/TekhneDev/rag-leis/security/advisories/new
+    about: Relate vulnerabilidades em privado, nunca numa issue pública.
+  - name: Dúvida jurídica pessoal
+    url: https://github.com/TekhneDev/rag-leis#limitações
+    about: O rag-leis é um estudo e não substitui orientação jurídica. Procure um profissional.

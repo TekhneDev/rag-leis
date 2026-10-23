@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "Se usar este trabalho como referência, cite-o assim. Citar não autoriza copiar ou reutilizar o conteúdo; veja LICENSE."
+title: "rag-leis: RAG sobre legislação brasileira com avaliação"
+abstract: "Sistema de perguntas e respostas com recuperação aumentada (RAG) sobre a LGPD, o Código de Defesa do Consumidor e a Lei 14.133/2021, com conjunto ouro de 75 perguntas, métricas separadas para busca e geração e uma tabela de experimentos de busca."
+type: software
+authors:
+  - given-names: Carla
+    family-names: Braga
+repository-code: "https://github.com/TekhneDev/rag-leis"
+license-url: "https://github.com/TekhneDev/rag-leis/blob/main/LICENSE"
+date-released: 2026-10-23
+keywords:
+  - rag
+  - retrieval-augmented-generation
+  - llm-evaluation
+  - legislação brasileira
+  - lgpd

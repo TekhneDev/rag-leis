@@ -1,6 +1,9 @@
 # rag-leis
 
 [![CI](https://github.com/TekhneDev/rag-leis/actions/workflows/ci.yml/badge.svg)](https://github.com/TekhneDev/rag-leis/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)](pyproject.toml)
+[![Licença](https://img.shields.io/badge/licen%C3%A7a-todos%20os%20direitos%20reservados-lightgrey)](LICENSE)
+[![Código: black](https://img.shields.io/badge/c%C3%B3digo-black-000000)](https://github.com/psf/black)
 
 Sistema de perguntas e respostas (RAG) sobre três leis brasileiras que cita o artigo de onde tirou cada resposta, acompanhado de uma tabela de experimentos que mede o que faz o sistema acertar mais.
 
@@ -24,6 +27,7 @@ Sistema de perguntas e respostas (RAG) sobre três leis brasileiras que cita o a
 - [Reprodutibilidade](#reprodutibilidade)
 - [Documentos do projeto](#documentos-do-projeto)
 - [Próximos passos](#próximos-passos)
+- [Como participar](#como-participar)
 - [Licença](#licença)
 
 ## Para que serve
@@ -334,6 +338,17 @@ rag-leis/
 3. Fazer a análise de erros da melhor configuração, classificando cada falha em busca, geração, gabarito ou pergunta ambígua.
 4. Rodar o baseline e a melhor configuração no `test`, uma única vez, e reportar os dois números.
 5. Publicar a demo e escrever um texto curto sobre o achado que contrariou a hipótese.
+
+## Como participar
+
+Erros no gabarito, respostas que contradizem a lei e bugs são bem-vindos como issues, cada um com seu modelo. Mudanças de código só depois de combinadas numa issue.
+
+| Documento | Para quê |
+| --- | --- |
+| [Como contribuir](CONTRIBUTING.md) | O que é mais útil, as regras que protegem os resultados e o estilo do projeto |
+| [Código de conduta](CODE_OF_CONDUCT.md) | Como as pessoas se tratam aqui |
+| [Segurança](SECURITY.md) | Como relatar uma vulnerabilidade em privado e como rodar o app com segurança |
+| [Citação](CITATION.cff) | Como citar o projeto como referência |
 
 ## Licença
 

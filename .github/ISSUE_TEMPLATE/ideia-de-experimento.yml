@@ -1,0 +1,25 @@
+name: Ideia de experimento
+description: Uma peça para testar contra a tabela de experimentos.
+labels: [experimento]
+body:
+  - type: textarea
+    id: hipotese
+    attributes:
+      label: Hipótese
+      placeholder: "Um reranker menor mantém o recall@5 nas leigas com metade do tempo."
+    validations:
+      required: true
+  - type: textarea
+    id: mudanca
+    attributes:
+      label: O que muda em relação a uma configuração existente
+      description: Uma peça por experimento. Indique a configuração de partida em experiments/.
+    validations:
+      required: true
+  - type: input
+    id: metrica
+    attributes:
+      label: Métrica que deve mudar
+      placeholder: "MRR nas perguntas leigas"
+    validations:
+      required: true

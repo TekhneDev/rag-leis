@@ -1,0 +1,35 @@
+name: Resposta errada
+description: O sistema respondeu algo que contradiz a lei, inventou um dado ou citou o artigo errado.
+labels: [resposta]
+body:
+  - type: textarea
+    id: pergunta
+    attributes:
+      label: Pergunta feita
+      description: Não inclua dados pessoais reais.
+    validations:
+      required: true
+  - type: textarea
+    id: resposta
+    attributes:
+      label: Resposta do sistema
+      description: Cole a resposta e os artigos que apareceram ao lado.
+    validations:
+      required: true
+  - type: dropdown
+    id: busca
+    attributes:
+      label: Busca usada
+      options:
+        - App, busca rápida
+        - App, busca completa com reranker
+        - python -m rag_leis.responder
+    validations:
+      required: true
+  - type: textarea
+    id: correto
+    attributes:
+      label: O que a lei diz
+      description: Cite a lei e o artigo corretos.
+    validations:
+      required: true

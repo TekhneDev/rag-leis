@@ -1,0 +1,38 @@
+name: Erro no gabarito
+description: Uma pergunta do conjunto ouro tem resposta esperada, artigo ou tipo errado.
+labels: [gabarito]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Só perguntas do split `dev`. O `test` não deve ser lido antes do fim do projeto.
+  - type: input
+    id: pergunta
+    attributes:
+      label: Id da pergunta
+      placeholder: q028
+    validations:
+      required: true
+  - type: dropdown
+    id: problema
+    attributes:
+      label: Tipo de problema
+      options:
+        - Resposta esperada errada ou incompleta
+        - Artigo esperado errado
+        - Falta um artigo aceito
+        - Pergunta ambígua
+        - Tipo de pergunta errado
+    validations:
+      required: true
+  - type: textarea
+    id: evidencia
+    attributes:
+      label: Evidência
+      description: Cite a lei, o artigo e o trecho do texto que mostram o erro.
+    validations:
+      required: true
+  - type: textarea
+    id: correcao
+    attributes:
+      label: Correção sugerida

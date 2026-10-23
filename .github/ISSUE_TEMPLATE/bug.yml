@@ -1,0 +1,34 @@
+name: Bug
+description: Algo no código, no app ou nos comandos do README não funciona.
+labels: [bug]
+body:
+  - type: textarea
+    id: o-que-aconteceu
+    attributes:
+      label: O que aconteceu
+      description: Inclua a mensagem de erro completa, se houver.
+    validations:
+      required: true
+  - type: textarea
+    id: como-reproduzir
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. python -m rag_leis.index --cabecalho
+        2. streamlit run app.py
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que era esperado
+    validations:
+      required: true
+  - type: input
+    id: ambiente
+    attributes:
+      label: Ambiente
+      placeholder: "Ubuntu 24.04 no WSL2, Python 3.12, Ollama 0.40.2, commit e18aa06"
+    validations:
+      required: true

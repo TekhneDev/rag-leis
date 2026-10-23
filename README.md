@@ -24,6 +24,7 @@ Sistema de perguntas e respostas (RAG) sobre três leis brasileiras que cita o a
 - [Reprodutibilidade](#reprodutibilidade)
 - [Documentos do projeto](#documentos-do-projeto)
 - [Próximos passos](#próximos-passos)
+- [Licença](#licença)
 
 ## Para que serve
 
@@ -333,6 +334,10 @@ rag-leis/
 3. Fazer a análise de erros da melhor configuração, classificando cada falha em busca, geração, gabarito ou pergunta ambígua.
 4. Rodar o baseline e a melhor configuração no `test`, uma única vez, e reportar os dois números.
 5. Publicar a demo e escrever um texto curto sobre o achado que contrariou a hipótese.
+
+## Licença
+
+Copyright (c) 2026 Carla Braga. **Todos os direitos reservados.** Você pode ver e ler este repositório no GitHub, inclusive para avaliar o trabalho. Copiar, modificar, distribuir ou usar o código, o conjunto ouro, os resultados, os documentos ou as páginas, no todo ou em parte, exige autorização prévia e por escrito. O uso não autorizado sujeita o responsável às medidas previstas na Lei 9.610/1998 e no art. 184 do Código Penal. O texto das leis do corpus não é coberto, porque não tem proteção autoral. Os termos completos estão em [`LICENSE`](LICENSE).
 
 ---
 

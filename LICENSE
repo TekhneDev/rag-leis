@@ -1,0 +1,61 @@
+Copyright (c) 2026 Carla Braga (TekhneDev). Todos os direitos reservados.
+
+Este repositório e todo o seu conteúdo são obra protegida pela Lei 9.610/1998
+(Lei de Direitos Autorais). Nenhuma licença de uso é concedida, exceto o que
+está expressamente permitido abaixo.
+
+1. O QUE ESTÁ PROTEGIDO
+
+   O código-fonte; o conjunto ouro (perguntas, respostas esperadas, artigos
+   anotados e divisão em dev e test); as configurações e os resultados dos
+   experimentos; as análises; os documentos (README, diário, plano, roadmap e
+   guias); as páginas de apresentação, incluindo textos, desenhos e layout.
+
+2. O QUE É PERMITIDO SEM AUTORIZAÇÃO
+
+   a) Ver e ler o conteúdo no GitHub, inclusive para avaliar o trabalho da
+      autora, por exemplo em processos seletivos.
+   b) Criar um fork pela função do próprio GitHub, nos limites dos Termos de
+      Serviço do GitHub, apenas para visualização.
+
+3. O QUE EXIGE AUTORIZAÇÃO PRÉVIA E POR ESCRITO DA AUTORA
+
+   Copiar, reproduzir, modificar, adaptar, traduzir, criar obras derivadas,
+   distribuir, publicar, sublicenciar, vender ou usar este conteúdo, no todo
+   ou em parte, para qualquer fim, comercial ou não; usá-lo para treinar ou
+   avaliar modelos de inteligência artificial; ou apresentá-lo como trabalho
+   próprio ou de terceiros.
+
+4. O QUE NÃO ESTÁ COBERTO POR ESTE AVISO
+
+   a) O texto das leis (Lei 13.709/2018, Lei 8.078/1990 e Lei 14.133/2021),
+      que não é objeto de proteção autoral (Lei 9.610/1998, art. 8º, IV).
+   b) Bibliotecas, modelos e ferramentas de terceiros usados pelo projeto,
+      que seguem as suas próprias licenças.
+
+5. CONSEQUÊNCIAS DO USO NÃO AUTORIZADO
+
+   O uso ou a cópia não autorizados do conteúdo protegido constituem violação
+   de direitos autorais e sujeitam o responsável às medidas cabíveis,
+   incluindo pedido de remoção do conteúdo (como notificação DMCA ao GitHub e
+   a outras plataformas), ação de indenização por danos materiais e morais
+   (Lei 9.610/1998, arts. 102 a 110) e responsabilização criminal (Código
+   Penal, art. 184).
+
+6. PEDIDOS DE AUTORIZAÇÃO
+
+   Abra uma issue em https://github.com/TekhneDev/rag-leis ou entre em contato
+   pelo perfil https://github.com/TekhneDev.
+
+7. SEM GARANTIAS
+
+   O conteúdo é fornecido no estado em que se encontra, sem garantia de
+   qualquer tipo. O sistema é um estudo e não substitui orientação jurídica.
+
+---
+
+English summary: All rights reserved. You may view this repository on GitHub
+and fork it through GitHub's own feature for viewing only, as allowed by
+GitHub's Terms of Service. Any other use, copy, modification, distribution or
+use for training AI models requires the author's prior written permission.
+The text of the Brazilian laws in the corpus is not covered by copyright.

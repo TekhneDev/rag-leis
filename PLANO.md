@@ -16,14 +16,15 @@ Cada ferramenta nova entra no rag-leis como experimento medido, e não como curs
 
 | Etapa | Semanas | O que entra | Entregável | Pronto quando | Situação |
 | --- | --- | --- | --- | --- | --- |
-| 1. Base de engenharia | 1 | GitHub Actions (ruff, black, pytest) | `.github/workflows/ci.yml` e selo no README | O CI passa no GitHub | Feito; falta ver o primeiro run verde |
+| 1. Base de engenharia | 1 | GitHub Actions (ruff, black, pytest) | `.github/workflows/ci.yml` e selo no README | O CI passa no GitHub | Feito |
 | 2. Busca por palavra | 1 | BM25, híbrida com RRF, executor de experimentos | `experiments/*.json`, `results/experimentos/tabela.md` | Cada linha da tabela sai de um comando | Feito |
 | 3. Pendências humanas | 1 a 2 | Validar o gabarito e rotular 30 respostas | `validacao_gold.md` marcado, `rotulos.csv` preenchido | Concordância do juiz de pelo menos 80% | A fazer (só Carla pode fazer) |
 | 4. Melhorar a busca | 2 | Busca por referência ("art. N da Lei X"), híbrida com peso, reranker | Novas linhas na tabela | Hipóteses abaixo testadas | Feito |
-| 5. Melhorar a geração | 1 | Prompt menos rígido e variação de k | Respostas novas julgadas pelo juiz validado | Abstenção indevida medida antes e depois | A fazer; depende da etapa 3 |
+| 5. Melhorar a geração | 1 | Prompt menos rígido e variação de k | Respostas novas julgadas pelo juiz validado | Abstenção indevida medida antes e depois | A fazer; começa pelo passo 1 abaixo |
 | 6. Ferramentas de avaliação | 1 | Ragas ao lado do juiz próprio; MLflow para os experimentos | Comparação de concordância; runs no MLflow | As duas réguas comparadas com os rótulos humanos | A fazer |
 | 7. Entrega | 1 a 2 | App em Streamlit, README na ordem do roadmap, texto de divulgação | Demo pública | Alguém de fora roda seguindo só o README | App e README feitos; falta demo pública e texto |
 | 8. Produção | 2 a 3 | FastAPI, Docker, API comercial (Claude) contra o modelo local, Langfuse | Endpoint `/perguntar` em container | Custo e latência por pergunta medidos | Depois da entrega |
+| 7b. Revisão de arquitetura | 1 | Código sem repetição, modos do app num lugar só, conferência de citações, resposta aos pedaços, teste de regressão, `requirements.lock` | [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) | Mesmos números de antes e 65 testes passando | Feito |
 | 9. Diferenciais | contínuo | pgvector ou Qdrant, agente com uso de ferramentas, nuvem, editais do PNCP | Um item por vez | Cada um com número na tabela | Depois |
 
 Fora do projeto, em paralelo: SQL com um conjunto de dados tabular (uma tarde por semana), e um texto curto no LinkedIn a cada etapa com um número que surpreendeu.
@@ -81,6 +82,53 @@ As três peças se completam: o reranker ajuda nas leigas, a referência no term
 - **Escolha feita no dev.** A melhor configuração foi escolhida olhando o `dev`, então seu número é otimista. O valor para reportar sai do `test`, rodado uma única vez, junto com o baseline, no fim do projeto.
 
 A busca está fechada por ora. O próximo passo é a geração (etapa 5), que depende do juiz validado.
+
+## Próximos passos
+
+Registrados em 26 de outubro de 2026, depois da revisão de arquitetura, em ordem de valor. Cada um diz o que fazer, como medir e quando está pronto.
+
+### Passo 1. Gerar e julgar as respostas com a busca completa no `dev`
+
+- **Por quê.** A busca foi de 0,85 para 0,94 no recall@5, mas as respostas e o juiz ainda são os do baseline. Não se sabe se a geração melhorou junto.
+- **Hipótese.** A abstenção indevida cai nas perguntas leigas, porque o artigo certo passa a vir no topo. A q028 é o contraexemplo a acompanhar: ali o artigo já vinha em 1º e o modelo se absteve mesmo assim.
+- **O que fazer.**
+  1. Dar ao `baseline.py` as opções `--modo` (os `MODOS` do `retrieve.py`) e `--pasta`, e fazer ele rodar só o `dev` quando o modo não for o do baseline. Feito.
+  2. Rodar `python -m rag_leis.baseline --modo completa --pasta results/completa`, cerca de 40 minutos em CPU.
+  3. Rodar `RAG_LEIS_JUIZ=gemma3:12b python -m rag_leis.evaluate --pasta results/completa --juiz`.
+- **Mede.** Abstenção indevida, correção, fidelidade e as duas métricas de citação, por tipo de pergunta, ao lado do baseline.
+- **Pronto quando.** Há uma tabela baseline contra completa, só com perguntas do `dev`, no plano e no diário.
+
+### Passo 2. Validar o juiz com os rótulos humanos (só Carla)
+
+- **Por quê.** Sem isso, correção e fidelidade são a opinião de um modelo que ninguém conferiu.
+- **O que fazer.** Terminar a validação das 75 perguntas em `results/validacao_gold.md` e preencher `results/baseline/rotulos.csv` lendo `results/baseline/rotular.md`, antes de olhar os julgamentos.
+- **Mede.** `python -m rag_leis.evaluate --concordancia`.
+- **Pronto quando.** A concordância do juiz é de pelo menos 80% nas 30 respostas. Se ficar abaixo, ajustar o prompt do juiz antes do passo 1 valer como resultado.
+
+### Passo 3. API com FastAPI e Docker
+
+- **Por quê.** O app é uma demo. Vagas de AI Engineer pedem um serviço que outro sistema consiga chamar.
+- **O que fazer.**
+  - Endpoint `POST /perguntar` com entrada e saída tipadas em Pydantic: pergunta e modo na entrada; resposta, artigos e citações fora dos trechos na saída.
+  - Endpoint `GET /saude`, que diz se o índice e o Ollama estão no ar.
+  - `Dockerfile` do serviço e `docker compose` com o Ollama.
+  - Testes da API com o LLM falso, como os de `test_generate.py`.
+- **Mede.** Latência de busca e de geração por pergunta, nos dois modos.
+- **Pronto quando.** `docker compose up` sobe tudo numa máquina limpa, seguindo só o README.
+
+### Passo 4. Registro de uso
+
+- **Por quê.** Sem registro não dá para saber onde o sistema erra com perguntas reais nem quanto tempo cada parte leva.
+- **O que fazer.** Para cada pergunta do app e da API, gravar num JSONL a data, o modo, os ids recuperados, a latência de cada etapa, se houve abstenção e o resultado da conferência de citações.
+- **Cuidado com a LGPD.** Não gravar o texto da pergunta, que pode ter dado pessoal. No máximo, um hash para contar repetições.
+- **Pronto quando.** Um comando resume o registro: perguntas por dia, latência média e fração de respostas com citação fora dos trechos.
+
+### Passo 5. Rodar o `test` uma única vez
+
+- **Por quê.** Todos os números até aqui foram escolhidos olhando o `dev` e são otimistas. O número para reportar sai do `test`.
+- **Quando.** Só depois dos passos 1 e 2, com a configuração final congelada num commit.
+- **O que fazer.** Rodar o baseline e a melhor configuração no `test`, com busca, geração, juiz e citações, e registrar os dois números com intervalo de confiança, sem nenhum ajuste depois.
+- **Pronto quando.** O README mostra o resultado do `test` ao lado do `dev`, com o commit em que foi rodado.
 
 ## Como contar em entrevista
 

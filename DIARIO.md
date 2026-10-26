@@ -367,6 +367,20 @@ Problemas encontrados:
 - Na primeira versão, a mensagem de erro do app sem o Ollama juntava duas frases sem ponto. Corrigido.
 - `use_container_width` está obsoleto no Streamlit 1.66; trocado por `width="stretch"`.
 
+### Revisão de arquitetura (26 de outubro de 2026)
+
+Refatoração sem mudar resultado, seguida de melhorias. O desenho completo está em [docs/ARQUITETURA.md](docs/ARQUITETURA.md).
+
+1. **Código repetido removido.** Leitura de JSONL, caminhos e cálculo das métricas de busca estavam copiados em vários módulos; foram para `dados.py` e para `metricas_de_busca`, em `evaluate.py`. Quatro experimentos sem reranker rodados de novo deram os mesmos artigos e as mesmas métricas.
+2. **Caminhos a partir da raiz do repositório**, para os comandos funcionarem de qualquer pasta.
+3. **Modos do app num lugar só** (`MODOS`, em `retrieve.py`). O `responder` passou a usar a mesma busca do app, com `--modo completa` para o reranker. Antes ele usava a busca do baseline.
+4. **Modelos em cache por processo.** Os dois modos do app carregavam cada um a sua cópia do bge-m3.
+5. **Resposta aos pedaços no app**, à medida que o modelo escreve, e mensagens de erro que dizem o comando para resolver (`ollama serve`, `ollama pull`).
+6. **Conferência de citações** (`citacoes.py`). Lê os pares lei e artigo na resposta e aponta os artigos citados que o modelo não recebeu. Virou aviso no app e no `responder` e duas métricas no `evaluate.py`. No baseline, no `dev`: 25 das 26 respostas sem abstenção citam lei e artigo, e todas as 25 citam só artigos recuperados.
+7. **Proteções novas:** `ler_config` recusa chave desconhecida, um teste confere que os modos do app são configurações medidas, um teste de regressão refaz o BM25 no `dev` no CI, `ruff` e `black` com versão fixa e `requirements.lock` com as versões exatas.
+
+Erro cometido: para testar a leitura das citações, rodei a função nas 75 respostas do baseline, incluindo as do `test`, e li algumas delas. Nada foi ajustado com base nelas e nenhum número do `test` foi registrado, mas a regra é não olhar. Os próximos scripts de conferência filtram o `dev` antes de imprimir.
+
 ### Ressalvas
 
 - O gabarito ainda está em validação humana. Se perguntas do `dev` mudarem, basta rodar o comando de novo.
@@ -374,7 +388,7 @@ Problemas encontrados:
 
 ## Testes
 
-O projeto tem 36 testes, em `tests/`:
+O projeto tem 65 testes, em `tests/`:
 
 | Arquivo | O que confere |
 | --- | --- |
@@ -383,8 +397,13 @@ O projeto tem 36 testes, em `tests/`:
 | `test_chunk.py` | Corte por artigo, letras, artigos citados, títulos e capítulos |
 | `test_corpus.py` | Ids únicos, numeração sem buraco, nada de assinatura, nenhuma linha de fora |
 | `test_gold.py` | Campos, artigos existentes no corpus, tamanho e divisão |
-| `test_generate.py` | Montagem do prompt e corte de artigo longo |
-| `test_evaluate.py` | Recall, MRR, acerto, abstenção, bootstrap, arquivo por juiz |
+| `test_generate.py` | Montagem do prompt, corte de artigo longo, chamada ao Ollama, resposta aos pedaços e erros, sem servidor |
+| `test_evaluate.py` | Recall, MRR, acerto, abstenção, citações, bootstrap, arquivo por juiz |
+| `test_retrieve.py` | Tokenização, BM25, RRF e texto com cabeçalho |
+| `test_citacoes.py` | Artigos citados na pergunta e na resposta, nas duas ordens |
+| `test_experimento.py` | Leitura e validação das configurações, modos do app, referência |
+| `test_regressao.py` | O BM25 reproduz os artigos gravados no `dev` |
+| `test_dados.py` | Leitura e escrita de JSONL |
 
 ```bash
 pytest

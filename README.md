@@ -58,8 +58,9 @@ flowchart LR
 | Chunking | Um registro por artigo, com lei, título e capítulo | `chunk.py` |
 | Embedding e índice | `BAAI/bge-m3` em CPU e FAISS com busca exata por cosseno; opcionalmente com o nome da lei no texto indexado | `index.py` |
 | Busca | Densa, BM25, híbrida (RRF), reranker e artigo citado pelo número, combinados a partir de uma configuração | `retrieve.py` |
-| Geração | `gemma3:4b` local, temperatura zero; cita lei e artigo ou responde "Não encontrei na base." | `generate.py` |
-| Avaliação | Recall@k, MRR e abstenção por código; correção e fidelidade por LLM juiz; intervalos por bootstrap | `evaluate.py` |
+| Geração | `gemma3:4b` local, temperatura zero; cita lei e artigo ou responde "Não encontrei na base." No app, a resposta aparece enquanto é escrita | `generate.py` |
+| Conferência de citações | Confere, por código, se cada artigo citado na resposta estava entre os que o modelo recebeu | `citacoes.py` |
+| Avaliação | Recall@k, MRR, abstenção e citações por código; correção e fidelidade por LLM juiz; intervalos por bootstrap | `evaluate.py` |
 | Experimentos | Roda uma configuração de busca no `dev` e atualiza a tabela | `experimento.py` |
 | Interface | App em Streamlit | `app.py` |
 
@@ -123,8 +124,12 @@ Um RAG erra em dois lugares: a busca não trouxe o trecho certo, ou trouxe e o m
 | MRR | Busca | Quão perto do topo ele apareceu? | Média de 1 dividido pela posição do primeiro acerto |
 | Acerto@5 | Busca | Veio algum artigo esperado ou aceito? | Código puro |
 | Abstenção correta | Geração | Nas perguntas fora do escopo, disse que não sabe? | Código puro, pela frase fixa |
+| Cita artigo | Geração | A resposta cita lei e artigo? | Código puro, lendo as citações da resposta |
+| Citações nos trechos | Geração | Todo artigo citado estava entre os recuperados? | Código puro; um artigo de fora veio da memória do modelo |
 | Correção | Geração | A resposta bate com a resposta esperada? | LLM juiz (`gemma3:12b`) |
 | Fidelidade | Geração | Cada afirmação está apoiada nos trechos? | LLM juiz (`gemma3:12b`) |
+
+No baseline, no `dev`, 25 das 26 respostas que não se abstiveram citam lei e artigo, e as 25 citam só artigos que estavam entre os recuperados.
 
 Todas as médias vêm com intervalo de 95% por bootstrap, e os resultados são sempre mostrados por tipo de pergunta, porque a média geral esconde onde o sistema sofre.
 
@@ -207,6 +212,8 @@ python3 -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -e ".[dev,app]"
+# ou, com as versões exatas usadas nos resultados:
+# pip install -r requirements.lock && pip install -e . --no-deps
 ```
 
 A linha do PyTorch instala a versão só para CPU, bem menor. Quem tem placa de vídeo com bastante memória pode pular essa linha.
@@ -241,9 +248,10 @@ Abra http://localhost:8501. O app tem campo de pergunta, exemplos, a resposta e 
 
 ```bash
 python -m rag_leis.responder "O que é cláusula abusiva em contrato de consumo?"
+python -m rag_leis.responder --modo completa "Posso devolver um produto comprado pela internet?"
 ```
 
-Mostra os 5 artigos recuperados pela busca do baseline, com a similaridade, e a resposta com a lei e o artigo citados.
+Usa as mesmas duas buscas do app (`rapida`, o padrão, e `completa`, com reranker), definidas em `MODOS`, no `retrieve.py`. Mostra os 5 artigos recuperados e a resposta com a lei e o artigo citados.
 
 ### Reproduzir o baseline, a avaliação e os experimentos
 
@@ -266,6 +274,7 @@ Os experimentos com reranker baixam mais 2 GB e levam uns 20 minutos cada em CPU
 | `RAG_LEIS_LLM` | `gemma3:4b` | Modelo do Ollama que gera as respostas |
 | `RAG_LEIS_JUIZ` | o mesmo do LLM | Modelo do Ollama usado como juiz; use um diferente do gerador |
 | `OLLAMA_URL` | `http://localhost:11434` | Endereço do servidor do Ollama |
+| `RAG_LEIS_RAIZ` | a pasta do repositório | Onde ficam `data/`, `results/` e `experiments/`; só precisa mudar se o pacote for instalado fora do repositório |
 
 O projeto não usa chave de API. Se um dia usar, ela fica num arquivo `.env`, que está no `.gitignore`.
 
@@ -290,12 +299,14 @@ rag-leis/
     gold/gold.jsonl         # 75 perguntas com resposta e artigos esperados
     index/                  # vetores dos artigos (fora do Git, gerados por comando)
   src/rag_leis/
+    dados.py                # caminhos a partir da raiz e leitura de JSONL
+    citacoes.py             # artigos citados na pergunta e na resposta
     ingest.py               # baixar e limpar
     chunk.py                # cortar por artigo
     index.py                # embeddings, índices e texto com cabeçalho
-    retrieve.py             # densa, BM25, RRF, reranker, artigo citado e a pipeline
+    retrieve.py             # densa, BM25, RRF, reranker, artigo citado, a pipeline e os modos do app
     generate.py             # prompt e chamada ao Ollama
-    responder.py            # uma pergunta de ponta a ponta
+    responder.py            # uma pergunta de ponta a ponta, com a busca do app
     baseline.py             # conjunto ouro inteiro pelo baseline
     evaluate.py             # métricas, juiz, sonda e concordância
     experimento.py          # experimentos de busca a partir de configuração
@@ -306,17 +317,20 @@ rag-leis/
     validacao_gold.md       # validação humana das perguntas
     conferencia_fase1.md    # conferência manual do corpus
   docs/
+    ARQUITETURA.md          # módulos, decisões, garantias e próximos passos
     apresentacao/           # as duas páginas de apresentação
     guia-validacao-gold-dev.pdf
   tests/
   .github/workflows/ci.yml
   pyproject.toml
+  requirements.lock         # versões exatas do ambiente dos resultados
 ```
 
 ## Reprodutibilidade
 
 - **Temperatura zero e semente fixa** em toda chamada ao LLM, e todas as saídas salvas em disco (`results/`).
-- **Versões fixadas:** Python 3.14.4, torch 2.14.1 (CPU), sentence-transformers 6.1.0, faiss-cpu 1.15.1, rank-bm25 0.2.2, Ollama 0.40.2. A lista completa está no [diário](DIARIO.md#máquina-e-versões).
+- **Versões fixadas:** Python 3.14.4, torch 2.14.1 (CPU), sentence-transformers 6.1.0, faiss-cpu 1.15.1, rank-bm25 0.2.2, Ollama 0.40.2. Todas as bibliotecas, com versão exata, estão em `requirements.lock`.
+- **Teste de regressão:** o CI refaz a busca BM25 nas perguntas do `dev` e exige os mesmos artigos gravados em `results/experimentos/`.
 - **Cada linha da tabela de experimentos** é um arquivo em `experiments/` e um comando. A configuração usada fica gravada junto com as métricas e os ids recuperados de cada pergunta.
 - **Máquina usada:** Linux no WSL2, 12 núcleos, 15 GB de RAM, tudo em CPU.
 
@@ -325,6 +339,7 @@ rag-leis/
 | Documento | O que tem |
 | --- | --- |
 | [Roadmap](Roadmap%20RAG%20jur%C3%ADdico%20com%20avalia%C3%A7%C3%A3o.md) | O plano original: conceitos, fases, métricas e armadilhas |
+| [Arquitetura](docs/ARQUITETURA.md) | Módulos, a pipeline de busca, as decisões com os motivos e as garantias de cada parte |
 | [Diário](DIARIO.md) | O que foi feito em cada fase, passo a passo, com os problemas e os erros cometidos |
 | [Plano](PLANO.md) | Próximas etapas ligadas ao que o mercado de trabalho pede, e como contar o projeto em entrevista |
 | [Apresentação](docs/apresentacao/) | História desenhada e visão técnica, em HTML |
@@ -333,11 +348,13 @@ rag-leis/
 
 ## Próximos passos
 
-1. Validar as 75 perguntas do gabarito e rotular as 30 respostas do juiz. Os dois dependem de leitura humana.
-2. Atacar as 8 abstenções indevidas com um prompt menos rígido, medido pelo juiz validado.
-3. Fazer a análise de erros da melhor configuração, classificando cada falha em busca, geração, gabarito ou pergunta ambígua.
-4. Rodar o baseline e a melhor configuração no `test`, uma única vez, e reportar os dois números.
-5. Publicar a demo e escrever um texto curto sobre o achado que contrariou a hipótese.
+Detalhados no [plano](PLANO.md#próximos-passos), com o que fazer, como medir e quando cada um está pronto.
+
+1. **Gerar e julgar as respostas com a busca completa no `dev`**, para saber se a geração melhorou junto com a busca, principalmente a abstenção indevida nas perguntas leigas.
+2. **Validar o juiz com 30 rótulos humanos** e terminar a validação do gabarito. Só a autora pode fazer.
+3. **API com FastAPI e Docker**: `POST /perguntar` tipado, `GET /saude` e `docker compose` com o Ollama.
+4. **Registro de uso** com modo, artigos, latência e conferência de citações, sem gravar o texto da pergunta.
+5. **Rodar o `test` uma única vez**, com a configuração congelada, e reportar baseline e melhor configuração.
 
 ## Como participar
 

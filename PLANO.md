@@ -20,7 +20,7 @@ Cada ferramenta nova entra no rag-leis como experimento medido, e não como curs
 | 2. Busca por palavra | 1 | BM25, híbrida com RRF, executor de experimentos | `experiments/*.json`, `results/experimentos/tabela.md` | Cada linha da tabela sai de um comando | Feito |
 | 3. Pendências humanas | 1 a 2 | Validar o gabarito e rotular 30 respostas | `validacao_gold.md` marcado, `rotulos.csv` preenchido | Concordância do juiz de pelo menos 80% | A fazer (só Carla pode fazer) |
 | 4. Melhorar a busca | 2 | Busca por referência ("art. N da Lei X"), híbrida com peso, reranker | Novas linhas na tabela | Hipóteses abaixo testadas | Feito |
-| 5. Melhorar a geração | 1 | Prompt menos rígido e variação de k | Respostas novas julgadas pelo juiz validado | Abstenção indevida medida antes e depois | A fazer; começa pelo passo 1 abaixo |
+| 5. Melhorar a geração | 1 | Prompt menos rígido e variação de k | Respostas novas julgadas pelo juiz validado | Abstenção indevida medida antes e depois | Passo 1 feito: a busca completa reduziu a abstenção indevida; falta o prompt |
 | 6. Ferramentas de avaliação | 1 | Ragas ao lado do juiz próprio; MLflow para os experimentos | Comparação de concordância; runs no MLflow | As duas réguas comparadas com os rótulos humanos | A fazer |
 | 7. Entrega | 1 a 2 | App em Streamlit, README na ordem do roadmap, texto de divulgação | Demo pública | Alguém de fora roda seguindo só o README | App e README feitos; falta demo pública e texto |
 | 8. Produção | 2 a 3 | FastAPI, Docker, API comercial (Claude) contra o modelo local, Langfuse | Endpoint `/perguntar` em container | Custo e latência por pergunta medidos | Depois da entrega |
@@ -93,10 +93,31 @@ Registrados em 26 de outubro de 2026, depois da revisão de arquitetura, em orde
 - **Hipótese.** A abstenção indevida cai nas perguntas leigas, porque o artigo certo passa a vir no topo. A q028 é o contraexemplo a acompanhar: ali o artigo já vinha em 1º e o modelo se absteve mesmo assim.
 - **O que fazer.**
   1. Dar ao `baseline.py` as opções `--modo` (os `MODOS` do `retrieve.py`) e `--pasta`, e fazer ele rodar só o `dev` quando o modo não for o do baseline. Feito.
-  2. Rodar `python -m rag_leis.baseline --modo completa --pasta results/completa`, cerca de 40 minutos em CPU.
-  3. Rodar `RAG_LEIS_JUIZ=gemma3:12b python -m rag_leis.evaluate --pasta results/completa --juiz`.
+  2. Rodar `python -m rag_leis.baseline --modo completa --pasta results/completa`, cerca de 40 minutos em CPU. Feito.
+  3. Rodar `RAG_LEIS_JUIZ=gemma3:12b python -m rag_leis.evaluate --pasta results/completa --juiz`. Feito.
 - **Mede.** Abstenção indevida, correção, fidelidade e as duas métricas de citação, por tipo de pergunta, ao lado do baseline.
-- **Pronto quando.** Há uma tabela baseline contra completa, só com perguntas do `dev`, no plano e no diário.
+- **Pronto quando.** Há uma tabela baseline contra completa, só com perguntas do `dev`, no plano e no diário. Feito em 26 de outubro de 2026.
+- **Resultado.** Hipótese confirmada, com um custo nas citações. Números de `results/baseline/metricas_dev.json` e `results/completa/metricas_dev.json`, juiz `gemma3:12b`, ainda não validado (passo 2):
+
+  | Métrica, `dev` | Baseline | Completa |
+  | --- | --- | --- |
+  | Recall@5 (34 perguntas) | 0,85 | 0,94 |
+  | Abstenção indevida, geral | 0,24 (8 de 34) | 0,09 (3 de 34) |
+  | Abstenção indevida, leiga | 0,60 (6 de 10) | 0,30 (3 de 10) |
+  | Correta, geral (juiz) | 0,74 (25 de 34) | 0,79 (27 de 34) |
+  | Correta, leiga (juiz) | 0,30 | 0,70 |
+  | Correta, vários artigos (juiz) | 1,00 | 0,60 |
+  | Fiel (juiz) | 1,00 | 1,00 |
+  | Cita lei e artigo | 0,96 (25 de 26) | 0,87 (27 de 31) |
+  | Citações só de artigos recebidos | 1,00 (25 de 25) | 0,93 (25 de 27) |
+  | Abstenção correta, fora do escopo | 1,00 | 1,00 |
+
+  O que mostra:
+  - Seis perguntas passaram a ser respondidas certo (q028, q032, q036, q040, q044, q065) e quatro passaram a errado (q007, q034, q047, q053). O ganho líquido é de duas perguntas; com 34 perguntas, os intervalos de confiança se sobrepõem.
+  - A busca melhor faz o modelo responder mais, mas ele cita com menos cuidado: a q028 cita o art. 16 da LGPD, que não estava entre os recebidos, e a q049 atribui a definição de encarregado ao art. 8º. Quatro respostas (q005, q019, q040, q065) copiam o texto do artigo sem dizer lei e artigo.
+  - A q030 e a q042 continuam se abstendo com o artigo certo em 1º. É problema do prompt, não da busca.
+  - Algumas respostas começam com "Não encontrei na base." e respondem logo depois (q030 e q047 no baseline, q036 na completa). A métrica conta como abstenção e o juiz julga o conteúdo, então as duas medidas discordam nesses casos.
+- **Consequência.** O próximo trabalho de qualidade é o prompt (etapa 5): exigir lei e artigo em toda afirmação, proibir citar artigo que não foi recebido e proibir "Não encontrei" seguido de resposta. A medida de antes já está gravada em `results/completa`.
 
 ### Passo 2. Validar o juiz com os rótulos humanos (só Carla)
 

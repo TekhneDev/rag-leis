@@ -38,7 +38,7 @@ flowchart LR
 | `retrieve.py` | Buscas (densa, BM25, híbrida), reranker, artigo citado, a pipeline e os `MODOS` | `index`, `citacoes`, `dados` |
 | `generate.py` | Prompt e chamada ao Ollama, inteira ou aos pedaços | nada |
 | `responder.py` | Uma pergunta de ponta a ponta na linha de comando | `retrieve`, `generate`, `citacoes` |
-| `baseline.py` | Gabarito inteiro pela busca do baseline, retomável | `retrieve`, `generate` |
+| `baseline.py` | Gabarito pela busca do baseline (as 75) ou por um modo do app (só o `dev`), retomável | `retrieve`, `generate` |
 | `evaluate.py` | Métricas de busca, de citação e do juiz LLM; sonda e concordância | `generate`, `citacoes`, `dados` |
 | `experimento.py` | Roda uma configuração de busca no `dev` e monta a tabela | `retrieve`, `evaluate` |
 | `app.py` | Interface Streamlit | `retrieve`, `generate`, `citacoes` |
@@ -113,7 +113,7 @@ No app vira um aviso logo abaixo da resposta.
 
 Em ordem de valor para o projeto. O detalhe de cada um, com comandos e critério de pronto, está no [plano](../PLANO.md#próximos-passos).
 
-1. **Medir a geração com a busca completa no `dev`.** Hoje só a busca foi melhorada e medida. Falta rodar a geração com o modo `completa`, depois o juiz e as métricas de citação, e comparar abstenção e correção com o baseline. A hipótese é que a abstenção indevida das perguntas leigas cai, porque o artigo certo passa a vir no topo.
+1. **Medir a geração com a busca completa no `dev`.** Feito: `python -m rag_leis.baseline --modo completa` grava em `results/completa`. A abstenção indevida caiu de 0,24 para 0,09, e a conferência de citações achou duas respostas citando artigo não recebido, o que leva ao trabalho no prompt.
 2. **Validar o juiz com os 30 rótulos humanos.** Sem isso, `fiel` e `correta` são números de um modelo não validado. É a tarefa que só a Carla pode fazer.
 3. **Expor o pipeline como API (FastAPI) e empacotar em Docker.** O app atual é uma demo. Uma API com `/perguntar`, esquema de resposta tipado e um `docker compose` com o Ollama mostra o caminho para produção.
 4. **Registro de uso.** Gravar, para cada pergunta do app, o modo, os ids, a latência de busca e de geração e o resultado da conferência, sem guardar a pergunta em texto, por causa da LGPD.

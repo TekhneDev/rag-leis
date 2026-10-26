@@ -350,7 +350,7 @@ rag-leis/
 
 Detalhados no [plano](PLANO.md#próximos-passos), com o que fazer, como medir e quando cada um está pronto.
 
-1. **Gerar e julgar as respostas com a busca completa no `dev`**, para saber se a geração melhorou junto com a busca, principalmente a abstenção indevida nas perguntas leigas.
+1. **Feito: respostas com a busca completa no `dev`.** A abstenção indevida caiu de 8 para 3 em 34 perguntas (nas leigas, de 6 para 3 em 10), mas as citações pioraram um pouco: 2 de 27 respostas citam artigo que o modelo não recebeu. O próximo passo de qualidade é o prompt. Números no [plano](PLANO.md#passo-1-gerar-e-julgar-as-respostas-com-a-busca-completa-no-dev).
 2. **Validar o juiz com 30 rótulos humanos** e terminar a validação do gabarito. Só a autora pode fazer.
 3. **API com FastAPI e Docker**: `POST /perguntar` tipado, `GET /saude` e `docker compose` com o Ollama.
 4. **Registro de uso** com modo, artigos, latência e conferência de citações, sem gravar o texto da pergunta.

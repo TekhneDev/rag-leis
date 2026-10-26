@@ -381,6 +381,26 @@ Refatoração sem mudar resultado, seguida de melhorias. O desenho completo est�
 
 Erro cometido: para testar a leitura das citações, rodei a função nas 75 respostas do baseline, incluindo as do `test`, e li algumas delas. Nada foi ajustado com base nelas e nenhum número do `test` foi registrado, mas a regra é não olhar. Os próximos scripts de conferência filtram o `dev` antes de imprimir.
 
+### Geração com a busca completa (26 de outubro de 2026)
+
+Até aqui só a busca tinha melhorado; as respostas e o juiz ainda eram os do baseline. O `baseline.py` ganhou `--modo`, que roda um modo do app só no `dev`. As 39 respostas com o modo `completa` levaram cerca de 40 minutos, e o juiz `gemma3:12b` mais uns 35.
+
+| Métrica, `dev` | Baseline | Completa |
+| --- | --- | --- |
+| Recall@5 | 0,85 | 0,94 |
+| Abstenção indevida, geral | 0,24 (8 de 34) | 0,09 (3 de 34) |
+| Abstenção indevida, leiga | 0,60 | 0,30 |
+| Correta, geral (juiz) | 0,74 | 0,79 |
+| Correta, leiga (juiz) | 0,30 | 0,70 |
+| Correta, vários artigos (juiz) | 1,00 | 0,60 |
+| Fiel (juiz) | 1,00 | 1,00 |
+| Cita lei e artigo | 0,96 | 0,87 |
+| Citações só de artigos recebidos | 1,00 | 0,93 |
+
+A abstenção indevida caiu como esperado, principalmente nas perguntas leigas. A correção subiu pouco: seis perguntas passaram a certo e quatro a errado. A conferência de citações mostrou o custo: duas respostas citam artigo que o modelo não recebeu (q028, q049) e quatro não citam lei e artigo. A q030 e a q042 ainda se abstêm com o artigo certo em 1º, e há respostas que dizem "Não encontrei na base." e respondem em seguida, o que a métrica de abstenção e o juiz leem de jeitos diferentes. Tudo isso aponta para o prompt, que é o próximo passo de qualidade.
+
+Só respostas do `dev` foram abertas nesta análise; os scripts conferem o split antes de imprimir.
+
 ### Ressalvas
 
 - O gabarito ainda está em validação humana. Se perguntas do `dev` mudarem, basta rodar o comando de novo.
@@ -388,7 +408,7 @@ Erro cometido: para testar a leitura das citações, rodei a função nas 75 res
 
 ## Testes
 
-O projeto tem 65 testes, em `tests/`:
+O projeto tem 66 testes, em `tests/`:
 
 | Arquivo | O que confere |
 | --- | --- |

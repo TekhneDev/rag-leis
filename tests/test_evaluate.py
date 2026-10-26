@@ -84,6 +84,8 @@ def test_medir_e_resumir_separam_busca_e_abstencao() -> None:
         and linhas[1]["absteve"] == 1
     )
     assert "recall@5" not in linhas[2] and linhas[2]["abstencao_correta"] == 1
+    assert linhas[1]["abstencao_indevida"] == 1 and linhas[0]["abstencao_indevida"] == 0
+    assert "abstencao_indevida" not in linhas[2]
 
     resumo = resumir(linhas)
     assert resumo["geral"]["recall@5"] == {
@@ -102,3 +104,32 @@ def test_cada_juiz_grava_no_seu_arquivo(monkeypatch, tmp_path):
     grande = evaluate.arquivo_do_juiz(tmp_path, "julgamentos.jsonl")
     assert pequeno.name == "julgamentos_gemma3-4b.jsonl"
     assert grande.name == "julgamentos_gemma3-12b.jsonl"
+
+
+def test_metricas_de_busca_de_uma_pergunta() -> None:
+    from rag_leis.evaluate import metricas_de_busca
+
+    item = {"artigos_esperados": ["b", "z"], "artigos_aceitos": ["e"]}
+    assert metricas_de_busca(RECUPERADOS, item) == {
+        "recall@1": 0,
+        "recall@3": 0.5,
+        "recall@5": 0.5,
+        "mrr": 0.5,
+        "acerto@5": 1,
+    }
+
+
+def test_metricas_de_citacao() -> None:
+    from rag_leis.evaluate import metricas_de_citacao
+
+    assert metricas_de_citacao("Sim (Lei 8.078/1990, art. 49).", ["cdc-art-49"]) == {
+        "cita_artigo": 1,
+        "citacoes_nos_trechos": 1,
+    }
+    assert metricas_de_citacao("Sim (Lei 8.078/1990, art. 49).", ["cdc-art-18"]) == {
+        "cita_artigo": 1,
+        "citacoes_nos_trechos": 0,
+    }
+    assert metricas_de_citacao("Sim, pode devolver.", ["cdc-art-49"]) == {
+        "cita_artigo": 0
+    }

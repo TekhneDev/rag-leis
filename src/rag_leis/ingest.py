@@ -7,7 +7,7 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 
-RAW_DIR = Path("data/raw")
+from rag_leis.dados import RAW_DIR
 
 _BASE = "https://www.planalto.gov.br/ccivil_03"
 _RISCADO = re.compile(r"line-through", re.IGNORECASE)

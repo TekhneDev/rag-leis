@@ -1,12 +1,10 @@
 """Corta o texto limpo de cada lei em artigos e grava o corpus.jsonl."""
 
-import json
 import re
 from pathlib import Path
 
+from rag_leis.dados import CORPUS, escrever_linha
 from rag_leis.ingest import LEIS, Lei, baixar, limpar
-
-CORPUS = Path("data/processed/corpus.jsonl")
 
 # "Art. 1º", "Art. 10.", "Art. 55-A." e o erro de digitação "Art. 5 7." da LGPD.
 _INICIO_ARTIGO = re.compile(r"Art\.\s*(\d[\d ]*)[ºo°]?\s*(?:-\s*([A-Z])\b)?")
@@ -121,7 +119,7 @@ def montar_corpus(destino: Path = CORPUS) -> list[dict]:
     destino.parent.mkdir(parents=True, exist_ok=True)
     with destino.open("w", encoding="utf-8") as arquivo:
         for registro in registros:
-            arquivo.write(json.dumps(registro, ensure_ascii=False) + "\n")
+            escrever_linha(arquivo, registro)
     return registros
 
 

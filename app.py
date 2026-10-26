@@ -2,27 +2,29 @@
 
 import streamlit as st
 
-from rag_leis.generate import NAO_ENCONTREI, generate
-from rag_leis.index import APELIDOS, carregar_corpus
+from rag_leis.citacoes import artigos_citados, citacoes_da_resposta
+from rag_leis.dados import artigos_por_id
+from rag_leis.generate import MODELO_LLM, NAO_ENCONTREI, gerar_em_partes
+from rag_leis.index import APELIDOS, MODELO_EMBEDDING
 from rag_leis.ingest import LEIS
-from rag_leis.retrieve import PADRAO, artigos_citados, montar_pipeline
+from rag_leis.retrieve import MODOS, montar_pipeline
 
-# As duas configurações vêm da tabela de experimentos (results/experimentos/tabela.md).
-BUSCAS = {
-    "Rápida": PADRAO | {"busca": "densa", "cabecalho": True, "referencia": True},
-    "Completa, com reranker": PADRAO
-    | {
-        "busca": "densa",
-        "cabecalho": True,
-        "referencia": True,
-        "reranker": "BAAI/bge-reranker-v2-m3",
-    },
-}
-DESCRICAO = {
-    "Rápida": "Busca por significado, com o nome da lei no texto indexado e o artigo "
-    "citado pelo número na frente.",
-    "Completa, com reranker": "A rápida, mais um reranker que relê os 20 primeiros. "
-    "Acerta mais em perguntas em linguagem leiga, mas soma uns 30 segundos em CPU.",
+# Nome que aparece na barra lateral e a explicação de cada modo de busca.
+OPCOES = {
+    "rapida": (
+        "Rápida",
+        (
+            "Busca por significado, com o nome da lei no texto indexado e o artigo "
+            "citado pelo número na frente."
+        ),
+    ),
+    "completa": (
+        "Completa, com reranker",
+        (
+            "A rápida, mais um reranker que relê os 20 primeiros. Acerta mais em "
+            "perguntas em linguagem leiga, mas soma uns 30 segundos em CPU."
+        ),
+    ),
 }
 # Perguntas de exemplo que não estão no conjunto ouro, para não misturar demo e gabarito.
 EXEMPLOS = [
@@ -35,13 +37,13 @@ URL_DA_LEI = {lei.nome: lei.url for lei in LEIS}
 
 
 @st.cache_resource(show_spinner="Carregando os modelos de busca...")
-def pipeline(nome: str):
-    return montar_pipeline(BUSCAS[nome])
+def pipeline(modo: str):
+    return montar_pipeline(MODOS[modo])
 
 
 @st.cache_resource
 def artigos() -> dict[str, dict]:
-    return {registro["id"]: registro for registro in carregar_corpus()}
+    return artigos_por_id()
 
 
 def mostrar_artigo(posicao: int, artigo: dict, citados: list[str]) -> None:
@@ -60,6 +62,35 @@ def mostrar_artigo(posicao: int, artigo: dict, citados: list[str]) -> None:
         st.markdown(f"[Texto completo da lei no Planalto]({URL_DA_LEI[artigo['lei']]})")
 
 
+def _juntar(primeira: str, resto):
+    yield primeira
+    yield from resto
+
+
+def mostrar_conferencia(resposta: str, ids: list[str]) -> None:
+    """Confere se cada artigo citado na resposta estava entre os que o modelo recebeu."""
+    citados = citacoes_da_resposta(resposta)
+    fora = [c for c in citados if c not in ids]
+    if not citados:
+        st.warning("A resposta não citou lei e artigo. Confira nos artigos ao lado.")
+    elif fora:
+        nomes = ", ".join(_nome_do_artigo(c) for c in fora)
+        st.warning(
+            f"A resposta cita {nomes}, que não estava entre os artigos recebidos. "
+            "Essa parte pode ter vindo da memória do modelo, não da base."
+        )
+    else:
+        st.success("Todos os artigos citados na resposta estão entre os recebidos.")
+
+
+def _nome_do_artigo(id_artigo: str) -> str:
+    artigo = artigos().get(id_artigo)
+    if artigo is None:
+        sigla, numero = id_artigo.split("-art-")
+        return f"o art. {numero} ({sigla.upper()}), que não existe no corpus"
+    return f"{artigo['lei']}, art. {artigo['artigo']}"
+
+
 st.set_page_config(page_title="rag-leis", page_icon="⚖️", layout="wide")
 st.title("rag-leis")
 st.write(
@@ -70,8 +101,10 @@ st.warning("Este sistema é um estudo e não substitui orientação jurídica.")
 
 with st.sidebar:
     st.header("Configuração")
-    nome_busca = st.radio("Busca", list(BUSCAS), key="busca")
-    st.caption(DESCRICAO[nome_busca])
+    modo = st.radio(
+        "Busca", list(OPCOES), format_func=lambda m: OPCOES[m][0], key="busca"
+    )
+    st.caption(OPCOES[modo][1])
     gerar = st.toggle(
         "Gerar resposta com o LLM",
         value=True,
@@ -81,8 +114,9 @@ with st.sidebar:
     st.caption("Em CPU, a resposta leva de 1 a 2 minutos.")
     st.divider()
     st.caption(
-        "Embedding BAAI/bge-m3 · índice FAISS · LLM gemma3:4b no Ollama, local, "
-        "temperatura zero. Corpus: 406 artigos baixados do Planalto em 9/10/2026."
+        f"Embedding {MODELO_EMBEDDING} · índice FAISS · LLM {MODELO_LLM} no Ollama, "
+        f"local, temperatura zero. Corpus: {len(artigos())} artigos baixados do "
+        "Planalto em 9/10/2026."
     )
 
 st.write("Exemplos:")
@@ -97,7 +131,7 @@ with st.form("perguntar"):
 
 if enviar and pergunta.strip():
     with st.spinner("Buscando os artigos..."):
-        ids = pipeline(nome_busca)(pergunta)
+        ids = pipeline(modo)(pergunta)
     encontrados = [artigos()[i] for i in ids]
     citados = artigos_citados(pergunta, set(artigos()))
 
@@ -115,15 +149,18 @@ if enviar and pergunta.strip():
         else:
             try:
                 with st.spinner("O modelo está lendo os artigos..."):
-                    resposta = generate(pergunta, encontrados)
+                    partes = gerar_em_partes(pergunta, encontrados)
+                    primeira = next(partes, "")
+                resposta = st.write_stream(_juntar(primeira, partes))
             except RuntimeError as erro:
                 st.error(f"{erro}. Se preferir, desligue a geração na barra lateral.")
             else:
-                if resposta.startswith(NAO_ENCONTREI):
+                if resposta.strip().startswith(NAO_ENCONTREI):
                     st.info(
                         "O sistema não encontrou a resposta nos artigos recuperados. "
                         "Pode ser um assunto fora das três leis."
                     )
-                st.markdown(resposta)
+                else:
+                    mostrar_conferencia(resposta, ids)
 elif enviar:
     st.error("Escreva uma pergunta antes de enviar.")

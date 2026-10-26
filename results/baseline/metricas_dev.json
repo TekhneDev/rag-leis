@@ -8,6 +8,14 @@
       ],
       "n": 5
     },
+    "abstencao_indevida": {
+      "media": 0.235,
+      "ic95": [
+        0.088,
+        0.382
+      ],
+      "n": 34
+    },
     "absteve": {
       "media": 0.333,
       "ic95": [
@@ -23,6 +31,22 @@
         1.0
       ],
       "n": 34
+    },
+    "cita_artigo": {
+      "media": 0.962,
+      "ic95": [
+        0.885,
+        1.0
+      ],
+      "n": 26
+    },
+    "citacoes_nos_trechos": {
+      "media": 1.0,
+      "ic95": [
+        1.0,
+        1.0
+      ],
+      "n": 25
     },
     "correta": {
       "media": 0.735,
@@ -74,6 +98,14 @@
     }
   },
   "direta": {
+    "abstencao_indevida": {
+      "media": 0.0,
+      "ic95": [
+        0.0,
+        0.0
+      ],
+      "n": 14
+    },
     "absteve": {
       "media": 0.0,
       "ic95": [
@@ -89,6 +121,22 @@
         1.0
       ],
       "n": 14
+    },
+    "cita_artigo": {
+      "media": 0.929,
+      "ic95": [
+        0.786,
+        1.0
+      ],
+      "n": 14
+    },
+    "citacoes_nos_trechos": {
+      "media": 1.0,
+      "ic95": [
+        1.0,
+        1.0
+      ],
+      "n": 13
     },
     "correta": {
       "media": 1.0,
@@ -140,6 +188,14 @@
     }
   },
   "leiga": {
+    "abstencao_indevida": {
+      "media": 0.6,
+      "ic95": [
+        0.3,
+        0.9
+      ],
+      "n": 10
+    },
     "absteve": {
       "media": 0.6,
       "ic95": [
@@ -155,6 +211,22 @@
         1.0
       ],
       "n": 10
+    },
+    "cita_artigo": {
+      "media": 1.0,
+      "ic95": [
+        1.0,
+        1.0
+      ],
+      "n": 4
+    },
+    "citacoes_nos_trechos": {
+      "media": 1.0,
+      "ic95": [
+        1.0,
+        1.0
+      ],
+      "n": 4
     },
     "correta": {
       "media": 0.3,
@@ -206,6 +278,14 @@
     }
   },
   "varios_artigos": {
+    "abstencao_indevida": {
+      "media": 0.2,
+      "ic95": [
+        0.0,
+        0.6
+      ],
+      "n": 5
+    },
     "absteve": {
       "media": 0.2,
       "ic95": [
@@ -221,6 +301,22 @@
         1.0
       ],
       "n": 5
+    },
+    "cita_artigo": {
+      "media": 1.0,
+      "ic95": [
+        1.0,
+        1.0
+      ],
+      "n": 4
+    },
+    "citacoes_nos_trechos": {
+      "media": 1.0,
+      "ic95": [
+        1.0,
+        1.0
+      ],
+      "n": 4
     },
     "correta": {
       "media": 1.0,
@@ -272,6 +368,14 @@
     }
   },
   "termo_exato": {
+    "abstencao_indevida": {
+      "media": 0.2,
+      "ic95": [
+        0.0,
+        0.6
+      ],
+      "n": 5
+    },
     "absteve": {
       "media": 0.2,
       "ic95": [
@@ -287,6 +391,22 @@
         1.0
       ],
       "n": 5
+    },
+    "cita_artigo": {
+      "media": 1.0,
+      "ic95": [
+        1.0,
+        1.0
+      ],
+      "n": 4
+    },
+    "citacoes_nos_trechos": {
+      "media": 1.0,
+      "ic95": [
+        1.0,
+        1.0
+      ],
+      "n": 4
     },
     "correta": {
       "media": 0.6,

@@ -7,16 +7,16 @@ Uso:
 
 import argparse
 import json
+from functools import lru_cache
 from pathlib import Path
 
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from rag_leis.chunk import CORPUS
+from rag_leis.dados import INDEX_DIR, carregar_corpus
 
 MODELO_EMBEDDING = "BAAI/bge-m3"
-INDEX_DIR = Path("data/index")
 ARQUIVO_INDICE = INDEX_DIR / "artigos.faiss"
 ARQUIVO_IDS = INDEX_DIR / "artigos.json"
 # Nome pelo qual cada lei é conhecida, que o texto do artigo nunca repete.
@@ -49,12 +49,9 @@ def texto_indexado(registro: dict, cabecalho: bool = False) -> str:
     return " · ".join(partes) + "\n" + registro["texto"]
 
 
-def carregar_corpus(caminho: Path = CORPUS) -> list[dict]:
-    with caminho.open(encoding="utf-8") as arquivo:
-        return [json.loads(linha) for linha in arquivo]
-
-
+@lru_cache(maxsize=2)
 def carregar_modelo(nome: str = MODELO_EMBEDDING) -> SentenceTransformer:
+    """Carrega o modelo uma vez por processo; o bge-m3 ocupa uns 2 GB de memória."""
     return SentenceTransformer(nome, device="cpu")
 
 
@@ -75,6 +72,7 @@ def embutir(
 
 
 def montar_indice(cabecalho: bool = False) -> int:
+    """Grava o índice e os metadados e devolve quantos artigos foram indexados."""
     corpus = carregar_corpus()
     modelo = carregar_modelo()
     vetores = embutir(

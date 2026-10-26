@@ -1,14 +1,11 @@
 """Confere o conjunto ouro contra o corpus."""
 
-import json
 from collections import Counter
-from pathlib import Path
 
 import pytest
 
-from rag_leis.chunk import CORPUS
+from rag_leis.dados import CORPUS, GOLD, ler_jsonl
 
-GOLD = Path("data/gold/gold.jsonl")
 TIPOS = {"direta", "leiga", "varios_artigos", "termo_exato", "fora_do_escopo"}
 
 pytestmark = pytest.mark.skipif(
@@ -16,14 +13,9 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-def _ler(caminho: Path) -> list[dict]:
-    with caminho.open(encoding="utf-8") as arquivo:
-        return [json.loads(linha) for linha in arquivo]
-
-
 @pytest.fixture(scope="module")
 def gold() -> list[dict]:
-    return _ler(GOLD)
+    return ler_jsonl(GOLD)
 
 
 def test_campos_e_valores(gold: list[dict]) -> None:
@@ -50,13 +42,13 @@ def test_ids_e_perguntas_unicos(gold: list[dict]) -> None:
 
 
 def test_artigos_esperados_existem_no_corpus(gold: list[dict]) -> None:
-    ids = {registro["id"] for registro in _ler(CORPUS)}
+    ids = {registro["id"] for registro in ler_jsonl(CORPUS)}
     for item in gold:
         assert set(item["artigos_esperados"]) <= ids, item["id"]
 
 
 def test_artigos_aceitos_existem_e_nao_repetem_os_esperados(gold: list[dict]) -> None:
-    ids = {registro["id"] for registro in _ler(CORPUS)}
+    ids = {registro["id"] for registro in ler_jsonl(CORPUS)}
     for item in gold:
         aceitos = set(item["artigos_aceitos"])
         assert aceitos <= ids, item["id"]

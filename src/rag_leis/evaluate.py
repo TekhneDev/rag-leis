@@ -17,10 +17,16 @@ import random
 from collections import defaultdict
 from pathlib import Path
 
+from rag_leis.citacoes import citacoes_da_resposta
+from rag_leis.dados import (
+    GOLD,
+    RESULTADOS,
+    artigos_por_id,
+    escrever_linha,
+    ler_jsonl,
+)
 from rag_leis.generate import MODELO_LLM, NAO_ENCONTREI, conversar, montar_prompt
-from rag_leis.index import carregar_corpus
 
-GOLD = Path("data/gold/gold.jsonl")
 MODELO_JUIZ = os.environ.get("RAG_LEIS_JUIZ", MODELO_LLM)
 KS = (1, 3, 5)
 AMOSTRA_ROTULOS = 30
@@ -41,11 +47,6 @@ A resposta não é correta quando contradiz a resposta esperada, omite o ponto p
 Responda em JSON: {"justificativa": "uma frase", "correta": true ou false}"""
 
 
-def _ler(caminho: Path) -> list[dict]:
-    with caminho.open(encoding="utf-8") as arquivo:
-        return [json.loads(linha) for linha in arquivo]
-
-
 def recall_em_k(recuperados: list[str], esperados: list[str], k: int) -> float:
     """Fração dos artigos esperados que apareceu entre os k primeiros."""
     return len(set(recuperados[:k]) & set(esperados)) / len(esperados)
@@ -64,6 +65,30 @@ def acerto_em_k(
 ) -> float:
     """1 se algum artigo esperado ou aceito apareceu entre os k primeiros."""
     return float(bool(set(recuperados[:k]) & (set(esperados) | set(aceitos))))
+
+
+def metricas_de_busca(recuperados: list[str], item: dict) -> dict[str, float]:
+    """Recall@k, MRR e acerto@5 de uma pergunta que tem artigo esperado."""
+    esperados = item["artigos_esperados"]
+    metricas = {f"recall@{k}": recall_em_k(recuperados, esperados, k) for k in KS}
+    metricas["mrr"] = reciproco_da_posicao(recuperados, esperados)
+    metricas["acerto@5"] = acerto_em_k(
+        recuperados, esperados, item["artigos_aceitos"], 5
+    )
+    return metricas
+
+
+def metricas_de_citacao(resposta: str, recuperados: list[str]) -> dict[str, float]:
+    """Se a resposta cita lei e artigo e se todos os citados estavam nos trechos.
+
+    É uma checagem de fidelidade feita por código, sem juiz: um artigo citado que o
+    modelo não recebeu veio da memória dele, não da base.
+    """
+    citados = citacoes_da_resposta(resposta)
+    metricas = {"cita_artigo": float(bool(citados))}
+    if citados:
+        metricas["citacoes_nos_trechos"] = float(set(citados) <= set(recuperados))
+    return metricas
 
 
 def absteve(resposta: str) -> bool:
@@ -96,15 +121,13 @@ def medir(
             "absteve": float(absteve(saida["resposta"])),
         }
         if item["artigos_esperados"]:
-            recuperados, esperados = saida["recuperados"], item["artigos_esperados"]
-            for k in KS:
-                linha[f"recall@{k}"] = recall_em_k(recuperados, esperados, k)
-            linha["mrr"] = reciproco_da_posicao(recuperados, esperados)
-            linha["acerto@5"] = acerto_em_k(
-                recuperados, esperados, item["artigos_aceitos"], 5
-            )
+            linha |= metricas_de_busca(saida["recuperados"], item)
+            # A resposta existe no corpus; dizer "não encontrei" é erro.
+            linha["abstencao_indevida"] = linha["absteve"]
         else:
             linha["abstencao_correta"] = linha["absteve"]
+        if not linha["absteve"]:
+            linha |= metricas_de_citacao(saida["resposta"], saida["recuperados"])
         julgamento = julgamentos.get(item["id"], {})
         for metrica in ("fiel", "correta"):
             if metrica in julgamento:
@@ -146,7 +169,7 @@ def _trechos(saida: dict, artigos: dict[str, dict]) -> str:
 
 def _perguntar_ao_juiz(instrucoes: str, conteudo: str, campo: str) -> dict:
     bruto = conversar(
-        instrucoes, conteudo, modelo=MODELO_JUIZ, json=True, descarregar=True
+        instrucoes, conteudo, modelo=MODELO_JUIZ, formato_json=True, descarregar=True
     )
     try:
         return {campo: bool(json.loads(bruto)[campo]), f"justificativa_{campo}": bruto}
@@ -156,8 +179,10 @@ def _perguntar_ao_juiz(instrucoes: str, conteudo: str, campo: str) -> dict:
 
 def julgar(gold: list[dict], saidas: list[dict], destino: Path) -> dict[str, dict]:
     """Roda o juiz nas respostas que ainda não foram julgadas; pode ser retomado."""
-    feitos = {item["id"]: item for item in _ler(destino)} if destino.exists() else {}
-    artigos = {registro["id"]: registro for registro in carregar_corpus()}
+    feitos = (
+        {item["id"]: item for item in ler_jsonl(destino)} if destino.exists() else {}
+    )
+    artigos = artigos_por_id()
     por_id = {saida["id"]: saida for saida in saidas}
     with destino.open("a", encoding="utf-8") as arquivo:
         for item in gold:
@@ -179,8 +204,7 @@ def julgar(gold: list[dict], saidas: list[dict], destino: Path) -> dict[str, dic
                     f"{_trechos(saida, artigos)}\n\nResposta a avaliar: {saida['resposta']}",
                     "fiel",
                 )
-            arquivo.write(json.dumps(julgamento, ensure_ascii=False) + "\n")
-            arquivo.flush()
+            escrever_linha(arquivo, julgamento)
             feitos[item["id"]] = julgamento
             print(f"julgada {item['id']}", flush=True)
     return feitos
@@ -190,7 +214,7 @@ def gerar_amostra_para_rotular(
     gold: list[dict], saidas: list[dict], pasta: Path
 ) -> int:
     """Sorteia respostas do dev para você rotular sem ver a opinião do juiz."""
-    artigos = {registro["id"]: registro for registro in carregar_corpus()}
+    artigos = artigos_por_id()
     por_id = {saida["id"]: saida for saida in saidas}
     candidatas = [
         item for item in gold if item["split"] == "dev" and item["artigos_esperados"]
@@ -243,7 +267,8 @@ def gerar_amostra_para_rotular(
 def concordancia(pasta: Path) -> dict:
     """Fração das respostas em que o juiz deu o mesmo rótulo que você."""
     julgamentos = {
-        item["id"]: item for item in _ler(arquivo_do_juiz(pasta, "julgamentos.jsonl"))
+        item["id"]: item
+        for item in ler_jsonl(arquivo_do_juiz(pasta, "julgamentos.jsonl"))
     }
     valor = {"sim": True, "nao": False, "não": False}
     resultado = {}
@@ -311,7 +336,7 @@ SONDA = [
 
 def sondar_juiz() -> list[dict]:
     """Mostra se o juiz de fidelidade consegue reprovar uma resposta que deveria reprovar."""
-    artigos = {registro["id"]: registro for registro in carregar_corpus()}
+    artigos = artigos_por_id()
     trechos = montar_prompt(
         "O que é cláusula abusiva?", [artigos[i] for i in ARTIGOS_DA_SONDA]
     )
@@ -346,7 +371,7 @@ def _imprimir(resumo: dict) -> None:
 
 def main() -> None:
     argumentos = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    argumentos.add_argument("--pasta", type=Path, default=Path("results/baseline"))
+    argumentos.add_argument("--pasta", type=Path, default=RESULTADOS / "baseline")
     argumentos.add_argument("--split", choices=["dev", "test"], default="dev")
     argumentos.add_argument("--juiz", action="store_true")
     argumentos.add_argument("--rotular", action="store_true")
@@ -365,8 +390,8 @@ def main() -> None:
             print(f"{situacao:<8} {resultado['caso']}")
         return
 
-    todas = _ler(GOLD)
-    saidas = _ler(opcoes.pasta / "saidas.jsonl")
+    todas = ler_jsonl(GOLD)
+    saidas = ler_jsonl(opcoes.pasta / "saidas.jsonl")
     if opcoes.rotular:
         print(
             f"{gerar_amostra_para_rotular(todas, saidas, opcoes.pasta)} respostas em rotular.md"
@@ -381,7 +406,7 @@ def main() -> None:
     if opcoes.juiz:
         julgamentos = julgar(gold, saidas, arquivo_julgamentos)
     elif arquivo_julgamentos.exists():
-        julgamentos = {item["id"]: item for item in _ler(arquivo_julgamentos)}
+        julgamentos = {item["id"]: item for item in ler_jsonl(arquivo_julgamentos)}
     else:
         julgamentos = {}
 

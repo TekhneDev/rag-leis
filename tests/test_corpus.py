@@ -1,12 +1,12 @@
 """Confere o corpus gerado. Regenere com `python -m rag_leis.chunk`."""
 
-import json
 import re
 from collections import Counter
 
 import pytest
 
-from rag_leis.chunk import CORPUS, cortar
+from rag_leis.chunk import cortar
+from rag_leis.dados import CORPUS, ler_jsonl
 from rag_leis.ingest import LEIS, limpar
 
 ULTIMO_ARTIGO = {"Lei 13.709/2018": 65, "Lei 8.078/1990": 119, "Lei 14.133/2021": 194}
@@ -16,8 +16,7 @@ pytestmark = pytest.mark.skipif(not CORPUS.exists(), reason="corpus ainda não g
 
 @pytest.fixture(scope="module")
 def corpus() -> list[dict]:
-    with CORPUS.open(encoding="utf-8") as arquivo:
-        return [json.loads(linha) for linha in arquivo]
+    return ler_jsonl(CORPUS)
 
 
 def test_ids_unicos(corpus: list[dict]) -> None:

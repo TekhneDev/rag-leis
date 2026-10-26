@@ -13,23 +13,25 @@ import argparse
 import json
 from pathlib import Path
 
-from rag_leis.evaluate import (
-    GOLD,
-    KS,
-    _ler,
-    acerto_em_k,
-    recall_em_k,
-    reciproco_da_posicao,
-    resumir,
-)
+from rag_leis.dados import GOLD, RESULTADOS, ler_jsonl
+from rag_leis.evaluate import metricas_de_busca, resumir
 from rag_leis.retrieve import BUSCAS, PADRAO, montar_pipeline
 
-RESULTADOS = Path("results/experimentos")
+RESULTADOS_EXPERIMENTOS = RESULTADOS / "experimentos"
 TIPOS = ("geral", "direta", "leiga", "varios_artigos", "termo_exato")
 
 
 def ler_config(caminho: Path) -> dict:
-    config = PADRAO | json.loads(caminho.read_text(encoding="utf-8"))
+    """Configuração do arquivo sobre os padrões; recusa chave e busca desconhecidas."""
+    lida = json.loads(caminho.read_text(encoding="utf-8"))
+    # Uma chave com erro de digitação ("reranquer") seria ignorada em silêncio e o
+    # experimento mediria outra coisa; melhor parar.
+    desconhecidas = set(lida) - set(PADRAO) - {"busca"}
+    if desconhecidas:
+        raise ValueError(
+            f"chaves desconhecidas em {caminho.name}: {sorted(desconhecidas)}"
+        )
+    config = PADRAO | lida
     config["nome"] = caminho.stem
     if config["busca"] not in BUSCAS:
         raise ValueError(f"busca deve ser uma de {BUSCAS}, veio {config['busca']!r}")
@@ -52,22 +54,17 @@ def rotulo(config: dict) -> str:
 
 def medir_busca(gold: list[dict], recuperados: dict[str, list[str]]) -> list[dict]:
     """Uma linha por pergunta com artigo esperado; fora do escopo não tem o que buscar."""
-    linhas = []
-    for item in gold:
-        if not item["artigos_esperados"]:
-            continue
-        ids, esperados = recuperados[item["id"]], item["artigos_esperados"]
-        linha = {"id": item["id"], "tipo": item["tipo"]}
-        for k in KS:
-            linha[f"recall@{k}"] = recall_em_k(ids, esperados, k)
-        linha["mrr"] = reciproco_da_posicao(ids, esperados)
-        linha["acerto@5"] = acerto_em_k(ids, esperados, item["artigos_aceitos"], 5)
-        linhas.append(linha)
-    return linhas
+    return [
+        {"id": item["id"], "tipo": item["tipo"]}
+        | metricas_de_busca(recuperados[item["id"]], item)
+        for item in gold
+        if item["artigos_esperados"]
+    ]
 
 
 def rodar(config: dict) -> dict:
-    gold = [item for item in _ler(GOLD) if item["split"] == config["split"]]
+    """Busca as perguntas do split, grava as métricas e os ids recuperados."""
+    gold = [item for item in ler_jsonl(GOLD) if item["split"] == config["split"]]
     buscar = montar_pipeline(config)
     recuperados = {}
     for item in gold:
@@ -78,8 +75,8 @@ def rodar(config: dict) -> dict:
         "metricas": resumir(medir_busca(gold, recuperados)),
         "recuperados": recuperados,
     }
-    RESULTADOS.mkdir(parents=True, exist_ok=True)
-    destino = RESULTADOS / f"{config['nome']}_{config['split']}.json"
+    RESULTADOS_EXPERIMENTOS.mkdir(parents=True, exist_ok=True)
+    destino = RESULTADOS_EXPERIMENTOS / f"{config['nome']}_{config['split']}.json"
     destino.write_text(
         json.dumps(resultado, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
@@ -95,7 +92,7 @@ def escrever_tabela() -> Path:
     """Junta todos os resultados do dev numa tabela em Markdown."""
     resultados = [
         json.loads(caminho.read_text(encoding="utf-8"))
-        for caminho in sorted(RESULTADOS.glob("*_dev.json"))
+        for caminho in sorted(RESULTADOS_EXPERIMENTOS.glob("*_dev.json"))
     ]
     linhas = [
         "# Experimentos de busca (split dev)",
@@ -128,7 +125,7 @@ def escrever_tabela() -> Path:
         for r in resultados:
             celulas = " | ".join(_celula(r["metricas"], t, metrica) for t in TIPOS)
             linhas.append(f"| {r['config']['nome']} | {celulas} |")
-    destino = RESULTADOS / "tabela.md"
+    destino = RESULTADOS_EXPERIMENTOS / "tabela.md"
     destino.write_text("\n".join(linhas) + "\n", encoding="utf-8")
     return destino
 

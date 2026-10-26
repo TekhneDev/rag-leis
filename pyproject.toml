@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff", "black", "pytest"]
+dev = ["ruff==0.16.10", "black==26.10.0", "pytest"]
 app = ["streamlit"]
 
 [build-system]

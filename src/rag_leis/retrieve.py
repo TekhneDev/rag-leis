@@ -3,20 +3,24 @@ artigos citados pelo número, combinados a partir de uma configuração."""
 
 import json
 import re
-import unicodedata
+from collections.abc import Callable
 from functools import lru_cache
 
 import faiss
 import numpy as np
 from rank_bm25 import BM25Okapi
 
+from rag_leis.citacoes import artigos_citados, sem_acento
+from rag_leis.dados import artigos_por_id, carregar_corpus
 from rag_leis.index import (
     arquivos_do_indice,
-    carregar_corpus,
     carregar_modelo,
     embutir,
     texto_indexado,
 )
+
+# Uma busca recebe a pergunta e quantos artigos quer, e devolve os ids em ordem.
+Busca = Callable[[str, int], list[str]]
 
 
 class Buscador:
@@ -29,7 +33,7 @@ class Buscador:
         self.ids: list[str] = metadados["ids"]
         self.indice = faiss.read_index(str(arquivo_indice))
         self.modelo = carregar_modelo(metadados["modelo"])
-        self.artigos = {registro["id"]: registro for registro in carregar_corpus()}
+        self.artigos = artigos_por_id()
         if set(self.ids) != set(self.artigos):
             raise ValueError(f"Índice e corpus não batem. Rode: {comando}")
 
@@ -53,9 +57,7 @@ _TERMO = re.compile(r"\d+-[a-z]\b|\w+")
 
 def tokenizar(texto: str) -> list[str]:
     """Minúsculas, sem acento, sem stopwords; números e "42-A" viram termos."""
-    sem_acento = unicodedata.normalize("NFKD", texto.lower())
-    sem_acento = "".join(c for c in sem_acento if not unicodedata.combining(c))
-    return [t for t in _TERMO.findall(sem_acento) if t not in STOPWORDS]
+    return [t for t in _TERMO.findall(sem_acento(texto)) if t not in STOPWORDS]
 
 
 class BuscadorBM25:
@@ -95,41 +97,6 @@ def fundir_rrf(
     return sorted(soma.items(), key=lambda par: -par[1])
 
 
-# Como cada lei costuma ser chamada numa pergunta, já sem acento e em minúsculas.
-NOMES_DAS_LEIS = {
-    "lgpd": ("13.709", "13709", "lgpd", "lei geral de protecao de dados"),
-    "cdc": ("8.078", "8078", "cdc", "codigo de defesa do consumidor"),
-    "licitacoes": ("14.133", "14133", "lei de licitacoes", "licitacoes e contratos"),
-}
-_CITACAO = re.compile(r"\bart(?:igo)?s?\.?\s*(\d+)\s*[ºo°]?(?:\s*-\s*([a-z])\b)?")
-
-
-def _sem_acento(texto: str) -> str:
-    texto = unicodedata.normalize("NFKD", texto.lower())
-    return "".join(c for c in texto if not unicodedata.combining(c))
-
-
-def artigos_citados(pergunta: str, ids: set[str]) -> list[str]:
-    """Ids dos artigos que a pergunta cita pelo número, como em "art. 75 da Lei 14.133".
-
-    Se a pergunta nomeia uma ou mais leis, só elas contam; se não nomeia nenhuma,
-    o número vale para as três. Devolve só ids que existem no corpus.
-    """
-    texto = _sem_acento(pergunta)
-    leis = [
-        lei for lei, nomes in NOMES_DAS_LEIS.items() if any(n in texto for n in nomes)
-    ]
-    leis = leis or list(NOMES_DAS_LEIS)
-    citados = []
-    for numero, letra in _CITACAO.findall(texto):
-        sufixo = f"{numero}-{letra.upper()}" if letra else numero
-        for lei in leis:
-            artigo = f"{lei}-art-{sufixo}"
-            if artigo in ids and artigo not in citados:
-                citados.append(artigo)
-    return citados
-
-
 # Configuração de busca: os experimentos e o app montam a mesma pipeline a partir dela.
 BUSCAS = ("densa", "bm25", "hibrida")
 PADRAO = {
@@ -143,19 +110,51 @@ PADRAO = {
     "candidatos": 20,
     "split": "dev",
 }
+MODELO_RERANKER = "BAAI/bge-reranker-v2-m3"
+# As duas buscas que o app e o responder oferecem, escolhidas pela tabela de
+# experimentos (results/experimentos/tabela.md).
+MODOS = {
+    "rapida": PADRAO | {"busca": "densa", "cabecalho": True, "referencia": True},
+    "completa": PADRAO
+    | {
+        "busca": "densa",
+        "cabecalho": True,
+        "referencia": True,
+        "reranker": MODELO_RERANKER,
+    },
+}
 
 
-def montar_busca(config: dict):
+# Buscadores e modelos ficam em cache: o app com dois modos e uma rodada de vários
+# experimentos usam o mesmo objeto em vez de carregar o modelo de novo.
+@lru_cache(maxsize=2)
+def buscador_denso(cabecalho: bool) -> Buscador:
+    return Buscador(cabecalho)
+
+
+@lru_cache(maxsize=2)
+def buscador_bm25(cabecalho: bool) -> BuscadorBM25:
+    return BuscadorBM25(cabecalho=cabecalho)
+
+
+@lru_cache(maxsize=1)
+def _reranker(nome: str):
+    from sentence_transformers import CrossEncoder
+
+    return CrossEncoder(nome, device="cpu", max_length=512)
+
+
+def montar_busca(config: dict) -> Busca:
     """Devolve uma função (pergunta, n) -> n ids, do mais para o menos relevante."""
     if config["busca"] == "bm25":
-        bm25 = BuscadorBM25(cabecalho=config["cabecalho"])
+        bm25 = buscador_bm25(config["cabecalho"])
         return lambda pergunta, n: [a["id"] for a in bm25.buscar(pergunta, n)]
 
-    densa = Buscador(cabecalho=config["cabecalho"])
+    densa = buscador_denso(config["cabecalho"])
     if config["busca"] == "densa":
         return lambda pergunta, n: [a["id"] for a in densa.buscar(pergunta, n)]
 
-    bm25 = BuscadorBM25(cabecalho=config["cabecalho"])
+    bm25 = buscador_bm25(config["cabecalho"])
 
     def hibrida(pergunta: str, n: int) -> list[str]:
         # Cada busca traz uma lista mais funda que n, para a fusão ter de onde escolher.
@@ -170,15 +169,13 @@ def montar_busca(config: dict):
     return hibrida
 
 
-def com_reranker(buscar, config: dict):
+def com_reranker(buscar: Busca, config: dict) -> Busca:
     """Reordena os primeiros candidatos com um cross-encoder, que lê pergunta e artigo juntos."""
-    from sentence_transformers import CrossEncoder
-
     textos = {
         registro["id"]: texto_indexado(registro, config["cabecalho"])
         for registro in carregar_corpus()
     }
-    modelo = CrossEncoder(config["reranker"], device="cpu", max_length=512)
+    modelo = _reranker(config["reranker"])
 
     def reordenar(pergunta: str, n: int) -> list[str]:
         candidatos = buscar(pergunta, max(n, config["candidatos"]))
@@ -191,7 +188,7 @@ def com_reranker(buscar, config: dict):
     return reordenar
 
 
-def com_referencia(buscar):
+def com_referencia(buscar: Busca) -> Busca:
     """Põe na frente os artigos que a pergunta cita pelo número e completa com a busca."""
     ids = {registro["id"] for registro in carregar_corpus()}
 
@@ -203,7 +200,8 @@ def com_referencia(buscar):
     return buscar_citados_primeiro
 
 
-def montar_pipeline(config: dict):
+def montar_pipeline(config: dict) -> Callable[[str], list[str]]:
+    """Devolve uma função pergunta -> k ids, com as peças que a configuração liga."""
     buscar = montar_busca(config)
     if config["reranker"]:
         buscar = com_reranker(buscar, config)
@@ -212,11 +210,10 @@ def montar_pipeline(config: dict):
     return lambda pergunta: buscar(pergunta, config["k"])
 
 
-@lru_cache(maxsize=1)
-def _buscador() -> Buscador:
-    return Buscador()
-
-
 def retrieve(pergunta: str, k: int = 5) -> list[dict]:
-    """Devolve os k artigos mais próximos da pergunta, do mais para o menos parecido."""
-    return _buscador().buscar(pergunta, k)
+    """Busca do baseline: os k artigos mais próximos, com a similaridade.
+
+    Fica igual à da fase 3 para o baseline continuar reproduzível; o app e o
+    responder usam os MODOS.
+    """
+    return buscador_denso(False).buscar(pergunta, k)

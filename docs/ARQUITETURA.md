@@ -16,6 +16,7 @@ flowchart LR
     Q[pergunta] --> R[retrieve.py<br/>montar_pipeline]
     R --> G[generate.py] --> V[citacoes.py<br/>conferência]
     V --> A[app.py / responder.py]
+    L --> PA[painel.py<br/>página Avaliação]
   end
   subgraph medicao[Medição]
     O[(gold.jsonl)] --> E[experimento.py<br/>só busca]
@@ -41,7 +42,8 @@ flowchart LR
 | `baseline.py` | Gabarito pela busca do baseline (as 75) ou por um modo do app (só o `dev`), retomável | `retrieve`, `generate` |
 | `evaluate.py` | Métricas de busca, de citação e do juiz LLM; sonda e concordância | `generate`, `citacoes`, `dados` |
 | `experimento.py` | Roda uma configuração de busca no `dev` e monta a tabela | `retrieve`, `evaluate` |
-| `app.py` | Interface Streamlit | `retrieve`, `generate`, `citacoes` |
+| `painel.py` | Lê os resultados gravados para a página de avaliação, só do `dev` | `evaluate`, `experimento`, `citacoes`, `dados` |
+| `app.py` e `paginas/` | Interface Streamlit: `perguntar.py` responde, `avaliacao.py` mostra os resultados | `retrieve`, `generate`, `citacoes`, `painel` |
 
 As dependências só descem: nenhum módulo de baixo importa um de cima, e `citacoes.py` e `generate.py` não carregam modelo nenhum, o que deixa os testes rápidos.
 
@@ -92,6 +94,8 @@ Cada decisão com o motivo e o que custaria mudar.
 | Respostas e julgamentos gravados a cada pergunta, retomáveis | `baseline.rodar`, `evaluate.julgar` |
 | Mesmo lint no CI e na máquina | versões de `ruff` e `black` fixadas no `pyproject.toml` |
 | Ambiente dos resultados recuperável | `requirements.lock` |
+| Página de avaliação não lê o `test` | `painel.por_pergunta` e `tests/test_painel.py` |
+| As duas páginas do app abrem sem erro | `tests/test_app.py` |
 
 ## Conferência de citações
 

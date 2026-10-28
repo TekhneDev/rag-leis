@@ -60,9 +60,11 @@ flowchart LR
 | Busca | Densa, BM25, híbrida (RRF), reranker e artigo citado pelo número, combinados a partir de uma configuração | `retrieve.py` |
 | Geração | `gemma3:4b` local, temperatura zero; cita lei e artigo ou responde "Não encontrei na base." No app, a resposta aparece enquanto é escrita | `generate.py` |
 | Conferência de citações | Confere, por código, se cada artigo citado na resposta estava entre os que o modelo recebeu | `citacoes.py` |
-| Avaliação | Recall@k, MRR, abstenção e citações por código; correção e fidelidade por LLM juiz; intervalos por bootstrap | `evaluate.py` |
+| Avaliação da busca | Se o artigo certo veio entre os 5 trazidos (recall@k) e em que posição (MRR). Código puro, comparando ids | `evaluate.py` |
+| Avaliação da resposta | Por código: se disse "Não encontrei" quando devia, se cita lei e artigo e se cita só artigos que recebeu. Por um LLM juiz (`gemma3:12b`): se está correta e se é fiel aos trechos | `evaluate.py` |
+| Painel de avaliação | Página do app com as métricas, a evolução da busca, as duas rodadas lado a lado e o que mudou em cada pergunta | `paginas/avaliacao.py`, `painel.py` |
 | Experimentos | Roda uma configuração de busca no `dev` e atualiza a tabela | `experimento.py` |
-| Interface | App em Streamlit | `app.py` |
+| Interface | App em Streamlit com duas páginas: Consultar e Qualidade medida | `app.py`, `paginas/` |
 
 Tudo roda localmente, sem chave de API. A pergunta do usuário não sai da máquina.
 
@@ -75,7 +77,7 @@ Tudo roda localmente, sem chave de API. A pergunta do usuário não sai da máqu
 | 2. Conjunto ouro | `gold.jsonl` com 75 perguntas | Redigido; 6 de 75 perguntas validadas por pessoa |
 | 3. Baseline | Pipeline de ponta a ponta com busca densa | Concluída |
 | 4. Avaliação | `evaluate.py` e números do baseline | Métricas prontas; falta rotular 30 respostas para validar o juiz |
-| 5. Experimentos | Tabela de resultados e análise de erros | Busca concluída no `dev`; geração depende do juiz validado |
+| 5. Experimentos | Tabela de resultados e análise de erros | Busca concluída no `dev`; resposta com a busca completa medida; falta o prompt |
 | 6. Entrega | App, README e demo | App pronto; falta a demo pública e o resultado no `test` |
 
 As métricas de busca são confiáveis, porque são código puro. As de geração ainda não: o juiz passou numa sonda de 4 casos, mas falta compará-lo com rótulos humanos.
@@ -118,12 +120,21 @@ Problemas resolvidos na ingestão, com detalhes no [diário](DIARIO.md#fase-1-co
 
 Um RAG erra em dois lugares: a busca não trouxe o trecho certo, ou trouxe e o modelo respondeu mal. Cada falha tem conserto próprio, então cada uma tem métrica própria.
 
+Em três passos:
+
+1. **Gabarito antes do sistema.** 75 perguntas com a resposta e os artigos esperados, divididas em `dev` (39, para ajustar) e `test` (36, fechado até o fim).
+2. **A busca é medida sozinha**, por código: o artigo esperado veio entre os 5 trazidos, e em que posição.
+3. **A resposta é medida em seguida**, em parte por código (abstenção e citações) e em parte por um LLM juiz (correção e fidelidade), que também é testado.
+
+Os números aparecem com gráficos na página **Qualidade medida** do app (`streamlit run app.py`).
+
 | Métrica | Metade | Pergunta que responde | Como é calculada |
 | --- | --- | --- | --- |
 | Recall@k | Busca | O artigo esperado apareceu entre os k trazidos? | Código puro, comparando ids |
 | MRR | Busca | Quão perto do topo ele apareceu? | Média de 1 dividido pela posição do primeiro acerto |
 | Acerto@5 | Busca | Veio algum artigo esperado ou aceito? | Código puro |
 | Abstenção correta | Geração | Nas perguntas fora do escopo, disse que não sabe? | Código puro, pela frase fixa |
+| Abstenção indevida | Geração | Com a resposta no corpus, disse que não encontrou? | Código puro, pela frase fixa |
 | Cita artigo | Geração | A resposta cita lei e artigo? | Código puro, lendo as citações da resposta |
 | Citações nos trechos | Geração | Todo artigo citado estava entre os recuperados? | Código puro; um artigo de fora veio da memória do modelo |
 | Correção | Geração | A resposta bate com a resposta esperada? | LLM juiz (`gemma3:12b`) |
@@ -152,6 +163,23 @@ Tudo abaixo é do split `dev`: 39 perguntas, 34 com artigo esperado. Com 5 a 14 
 - **Abstenção correta:** nas 5 perguntas fora do escopo, o sistema respondeu "Não encontrei na base." em todas.
 - **Abstenção indevida:** em 8 das 34 perguntas com resposta no corpus o sistema também disse que não encontrou, 6 delas leigas. Na maioria, o artigo certo estava entre os trechos.
 - **Fidelidade** segundo o juiz: 1,00 em 26 respostas. Correção e fidelidade ainda aguardam a validação humana do juiz.
+
+### Resposta com a busca completa
+
+Mesmo modelo e mesmo prompt do baseline; só a busca muda para a "Completa" do app. Números de `results/completa/metricas_dev.json`.
+
+| Métrica | Baseline | Completa |
+| --- | --- | --- |
+| Recall@5 | 0,85 | 0,94 |
+| Abstenção indevida | 0,24 (8 de 34) | 0,09 (3 de 34) |
+| Abstenção indevida, linguagem leiga | 0,60 (6 de 10) | 0,30 (3 de 10) |
+| Correta (juiz) | 0,74 | 0,79 |
+| Fiel (juiz) | 1,00 | 1,00 |
+| Cita lei e artigo | 0,96 | 0,87 |
+| Citações só de artigos recebidos | 1,00 | 0,93 |
+| Abstenção correta, fora do escopo | 1,00 | 1,00 |
+
+A busca melhor fez o modelo responder mais: 5 perguntas deixaram de receber "Não encontrei". Mas ele passou a citar com menos cuidado: em 2 respostas cita um artigo que não recebeu. O próximo ajuste é no prompt.
 
 ### Experimentos de busca
 
@@ -242,7 +270,11 @@ python -m rag_leis.index --cabecalho  # índice com o nome da lei, usado pelo ap
 streamlit run app.py
 ```
 
-Abra http://localhost:8501. O app tem campo de pergunta, exemplos, a resposta e os artigos usados ao lado, cada um com o texto completo e o link para a lei no Planalto. Na barra lateral dá para escolher entre a busca rápida (densa com cabeçalho e artigo citado) e a completa (com reranker), e desligar a geração para ver só os artigos, sem o Ollama.
+Abra http://localhost:8501. O app tem duas páginas, no menu do topo.
+
+**Consultar** tem o campo de pergunta, as consultas frequentes, a nota com a resposta e o carimbo da conferência das citações, e o artigo principal composto como num código impresso, com o link para a lei no Planalto e os demais artigos como remissões. Em **Ajustes** dá para escolher entre a busca rápida (densa com cabeçalho e artigo citado) e a precisa (com reranker), e desligar a nota para ver só os artigos, sem o Ollama.
+
+**Qualidade medida** mostra os resultados gravados em `results/`, só do `dev`, sem rodar modelo nenhum: o resumo da busca completa contra o baseline, a evolução da busca peça por peça, todos os experimentos com intervalo de confiança, o recall por tipo de pergunta, as duas rodadas de resposta lado a lado e uma tabela do que mudou em cada pergunta.
 
 ### Linha de comando
 
@@ -292,7 +324,12 @@ O GitHub Actions roda os três a cada push.
 
 ```text
 rag-leis/
-  app.py                    # interface web (Streamlit)
+  app.py                    # interface web (Streamlit): menu com as duas páginas
+  paginas/
+    perguntar.py            # consulta, nota e conferência das citações
+    avaliacao.py            # gráficos e leitura dos resultados
+    composicao.py           # compõe o texto do artigo como num código impresso
+    estilo.py               # tema visual, cabeça de página, orelhas e carimbos
   data/
     raw/                    # HTML original das leis (fora do Git)
     processed/corpus.jsonl  # 406 artigos
@@ -310,9 +347,11 @@ rag-leis/
     baseline.py             # conjunto ouro inteiro pelo baseline
     evaluate.py             # métricas, juiz, sonda e concordância
     experimento.py          # experimentos de busca a partir de configuração
+    painel.py               # dados da página de avaliação, só do dev
   experiments/              # uma configuração JSON por experimento
   results/
     baseline/               # saídas, julgamentos, sondas e rotulagem
+    completa/               # respostas e julgamentos com a busca completa, só dev
     experimentos/           # métricas de cada experimento e tabela.md
     validacao_gold.md       # validação humana das perguntas
     conferencia_fase1.md    # conferência manual do corpus

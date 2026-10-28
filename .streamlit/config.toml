@@ -1,0 +1,28 @@
+[client]
+toolbarMode = "minimal"
+showSidebarNavigation = false
+
+[theme]
+base = "light"
+primaryColor = "#1C1F26"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F4F2"
+textColor = "#1B1D22"
+linkColor = "#1C1F26"
+linkUnderline = true
+borderColor = "#D9DBDE"
+showWidgetBorder = true
+greenColor = "#0A6B4E"
+orangeColor = "#8F5413"
+yellowColor = "#8F5413"
+redColor = "#8A2432"
+blueColor = "#24507A"
+font = "Public Sans:https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400..700;1,400&display=swap, sans-serif"
+headingFont = "Literata:https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400&display=swap, serif"
+codeFont = "IBM Plex Mono:https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap, monospace"
+headingFontWeights = 600
+headingFontSizes = ["2rem", "1.4rem", "1.15rem", "1rem", "0.95rem", "0.9rem"]
+baseRadius = "4px"
+buttonRadius = "4px"
+chartCategoricalColors = ["#1C1F26", "#9AA0A8", "#8A2432", "#24507A", "#4D6630"]
+dataframeHeaderBackgroundColor = "#F4F4F2"

@@ -401,6 +401,26 @@ A abstenção indevida caiu como esperado, principalmente nas perguntas leigas. 
 
 Só respostas do `dev` foram abertas nesta análise; os scripts conferem o split antes de imprimir.
 
+### Página de avaliação no app (28 de outubro de 2026)
+
+O app ganhou um menu com duas páginas. **Perguntar** é a interface que já existia; **Avaliação** mostra os resultados com gráficos. Ela só lê arquivos de `results/` (nenhum modelo roda), e as saídas do baseline, que têm as 75 perguntas, são filtradas para o `dev` antes de qualquer leitura.
+
+- Resumo da busca completa contra o baseline, com a variação de cada métrica e leituras que saem dos próprios números.
+- Evolução da busca peça por peça (densa, artigo citado, nome da lei, reranker), todos os experimentos com intervalo de 95% e um mapa de calor do recall@5 por tipo de pergunta.
+- As duas rodadas de resposta lado a lado, no geral e por tipo, com intervalo.
+- Tabela do que mudou em cada pergunta: posição do artigo esperado, abstenção, veredito do juiz e citações de artigos não recebidos.
+- Como é medido, a sonda do juiz e o andamento dos 30 rótulos humanos.
+
+Os dados ficam em `painel.py`, testado à parte; um teste abre as duas páginas com o `AppTest` do Streamlit. O README separou a avaliação da busca da avaliação da resposta e ganhou a tabela da busca completa.
+
+Problemas encontrados ao olhar a página renderizada: a variação das métricas aparecia com a seta errada, porque o sinal de menos não era o hífen que o Streamlit reconhece; os arquivos de experimento mais antigos não têm a chave `cabecalho` e precisam dos padrões, como a tabela já fazia; e a ordem das barras se perdia ao sobrepor o intervalo.
+
+### Redesenho da interface (28 de outubro de 2026)
+
+O app passou a ter a cara de um vade mecum. As páginas viraram **Consultar** e **Qualidade medida**, num menu no topo. A resposta é uma **nota** com um carimbo na margem que mostra o resultado da conferência das citações (conferido, atenção, sem citação, fora da base). O artigo principal aparece composto como num código impresso: `paginas/composicao.py` separa caput, parágrafos, incisos, alíneas e pena, e põe as notas de redação em corpo menor. Os outros artigos ficam em **Remissões**, e abas na borda da folha marcam de quais leis vieram os artigos.
+
+Na página de qualidade, o mapa de calor por tipo de pergunta virou uma tabela com barras, que funciona no celular. Problema encontrado ao testar: uma resposta sem nenhuma citação quebrava a página, porque o `st.html` recebia texto vazio.
+
 ### Ressalvas
 
 - O gabarito ainda está em validação humana. Se perguntas do `dev` mudarem, basta rodar o comando de novo.
@@ -408,7 +428,7 @@ Só respostas do `dev` foram abertas nesta análise; os scripts conferem o split
 
 ## Testes
 
-O projeto tem 66 testes, em `tests/`:
+O projeto tem 72 testes, em `tests/`:
 
 | Arquivo | O que confere |
 | --- | --- |
